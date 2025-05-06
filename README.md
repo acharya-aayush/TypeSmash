@@ -1,59 +1,90 @@
-# TypeSmash 🗡️
+# TypeSmash 💻⌨️
 
-Typing Smashers....check your typing speed...that's it.
+A sleek, minimalist typing test that doesn't suck. Check your typing speed without the bloat.
+
+![TypeSmash](assets/mainlogo.png)
+
+## 🔥 What's this?
+TypeSmash is a no-nonsense typing test that lets you track your speed, accuracy, and progress over time. Built with clean design principles inspired by MonkeyType but with my own twist. Perfect for:
+- Practicing your typing skills
+- Competing with yourself (or friends)
+- Looking productive when your boss walks by
+
+## ⚔️ Core Features
+
+- **Clean, distraction-free UI** - Focus on typing, not flashy animations
+- **Multiple test modes**:
+  - Time-based: 15 second sprint (previously had 30s and 60s modes too)
+  - Word-based: 20 word challenge (used to have 10, 50, 100 word options)
+- **Detailed statistics** - Track WPM, accuracy, error percentage
+- **History tracking** - See your progress over time with fancy graphs
+- **Dark mode by default** - Because I care about your eyes
+
+## 🧃 How to Use
+
+1. Go to [github pages link would be here]
+2. Choose your test mode (time or word count)
+3. Type the words shown on screen
+4. Get your results and feel good (or bad) about yourself
+5. Repeat until RSI develops
+
+## 📊 Stats & History
+
+TypeSmash keeps track of your last 100 typing tests, showing you:
+- Words per minute (WPM)
+- Accuracy percentage
+- Character count
+- Error count
+- Time elapsed
+
+View your history as bar graphs or line charts to track your improvement over time.
+
+## ⌛ Scrapped Features
+
+Several features were developed but ultimately removed due to scope/time constraints:
+
+- **Extended Time Tests** - 30 and 60 second modes were fully working but removed to focus on core experience
+- **More Word Counts** - 10, 50, and 100 word tests were cut to simplify options
+- **Code Mode** - A specialized mode for practicing typing code in Python and JavaScript. Removed due to headaches with syntax highlighting and tab/indentation handling
+- **Custom Text Mode** - Allowing users to paste their own text was abandoned due to formatting issues
+- **Account System** - Login functionality to sync stats across devices (maybe someday)
+
+## ⚙️ Tech Stack
+- Plain HTML, CSS, JS (kept it simple)
+- LocalStorage for data persistence
+- Canvas for stats visualization
+- No frameworks because I'm a purist (or lazy, take your pick)
+
+## 📱 Mobile Support
+Currently optimized for desktop. Mobile support is planned but not implemented because typing on phones is painful anyway.
+
+## 🗡️ Oh, and there's Zoro Mode... (last minute addition)
 
 ![Zoro Mode](assets/zoromodelogo.png)
 
-## 🔥 What's this?
-Just a typing game I built because normal typing tests are boring af. Two modes:
+A completely unplanned feature added in the final days of development. Words fall from the top of the screen, and you type them before they hit the bottom. Inspired by One Piece, because why not.
 
-- **Regular typing test** - your standard WPM counter
-- **Zoro Mode** - words fall from the sky, you type them, Zoro slashes them
+### Difficulty Tiers in Zoro Mode:
+- **East Blue** – 3-letter baby words for beginners
+- **Paradise** – 4-6 letter words to test your skills
+- **Warlord_Commander** – 7-8 letter challenges for the confident
+- **Yonko** – Long, complex words that will break your fingers
 
-## 👾 Difficulty Zones
-Words in Zoro mode are categorized like One Piece power levels:
-- **East Blue** – 3-letter baby words... training arc vibes
-- **Paradise** – 4-6 letter words, mid-difficulty, mid-crew level
-- **Warlord_Commander** – now it's serious, 7-8 letters, harder stuff
-- **Yonko** – yeah bro these words bite back. long af. Zoro with both hands and a teeth grip.
-
-## ⚔️ Features
-
-- **Regular typing test** - 15 second timer or 20 word modes
-- **Zoro mode** - slash falling words by typing them
-- **Power-ups** - Onigiri (heal), Haki (invincibility), Ashura (screen clear)
-- **Stats tracking** - see your progress (or lack thereof)
-- **Sound effects** - because silence is boring
-- **Custom word lists** - categorized by difficulty
-
-## 🧃 How to Play
-
-1. Go to [github pages link would be here]
-2. Choose your mode (regular or Zoro)
-3. Start typing
-4. Don't suck (optional)
-
-### Zoro Mode Controls
+### Controls:
 - Type the words to slash them
 - Type "onigiri" to restore 1 life
 - Type "haki" for temporary invincibility
 - Type "ashura" to clear the screen
 
-## ⚙️ Tech Stack
-- Plain HTML, CSS, JS (kept it simple)
-- Canvas-based rendering for Zoro mode
-- JSON word list with 300+ categorized words
-- No frameworks because I'm a purist (or lazy, take your pick)
+This mode was totally thrown together at the end but somehow became one of the most fun parts of the project. Funny how that works.
 
-## 📱 Mobile Support
-Lol no. Maybe someday. Your phone keyboard would probably hate you anyway.
-
-## 🎮 To-Do
-- Add more sword animations
-- More power-ups maybe?
-- Luffy mode if I feel motivated
-- Actually make it mobile friendly (don't hold your breath)
-- Add difficulty settings that aren't hard-coded
+## 🎮 Future Plans
+- Actually implement mobile support
+- Add back some of the scrapped features in a cleaner way
+- Custom themes beyond just dark mode
+- More word dictionaries/language support
+- Multiplayer races (ambitious, but would be cool)
+- Luffy mode? Who knows.
 
 ## 🎧 Credits & Acknowledgements
 - One Piece for being goated
@@ -61,7 +92,7 @@ Lol no. Maybe someday. Your phone keyboard would probably hate you anyway.
 - Grok AI for researching assets and helping with resources
 - GPT for basic ideas and starting concepts
 - Me for having the idea and gluing everything together
-- Chips and frooties for keeping my sugar frenzy in line while directing the AI overlords
+- Aarjan for suggesting I build a typing test in the first place
 - Anthropic, OpenAI and xAI for making cool AI tools
 - You for actually reading this far
 
@@ -76,4 +107,4 @@ Do whatever you want with this code. Credit would be nice but I can't stop you a
 
 ---
 
-*made with ☕ and sleep deprivation by Aayush Acharya*
+*made with determination and sleep deprivation by Aayush Acharya*

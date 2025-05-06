@@ -1,7 +1,7 @@
 # TypeSmash Documentation 📓
 
 ## 😶‍🌫️ What's this whole thing?
-Just a typing game I built to prove I could make something cool without sleeping for 3 days straight. Got bored of regular typing tests so I threw in a Zoro mode where you can slash words and feel like you're not wasting time on the internet.
+TypeSmash is a typing test app that I built to help people improve their typing speed and accuracy. Clean UI, no distractions, just you and your keyboard fighting for those sweet WPM numbers. Oh, and as a last-minute addition, there's a weird One Piece-inspired mode where Zoro slashes words.
 
 ## 🧠 Architecture (fancy word for "how I organized this mess")
 
@@ -15,159 +15,165 @@ Just a typing game I built to prove I could make something cool without sleeping
          |                  |                  |
 +--------v--------+ +-------v-------+ +--------v--------+
 |    main.js      | |   zoromode.js | |     stats.js    |
-| (boring part)   | | (cool part)   | | (numbers & stuff)|
+| (core typing)   | | (late addition)| | (numbers & stats)|
 +--------+--------+ +-------+-------+ +--------+--------+
          |                  |                  |
          +------------------v------------------+
                             |
                     +-------v-------+
                     |    utils.js   |
-                    | (random helper stuff) |
+                    | (helper functions) |
                     +---------------+
 ```
-
-Yeah I drew that ASCII diagram myself... time well spent.
 
 ## 🧃 Core Modules
 
 ### 1. main.js
-Basic typing test stuff:
-- Shows words
-- Checks if you typed them right
-- Calculates WPM and accuracy
-- Nothing fancy, just the minimum viable product
+The heart of TypeSmash:
+- Text generation engine (random words from dictionary)
+- Real-time typing verification
+- WPM and accuracy calculation
+- Mode switching (time vs word count)
+- Character-by-character highlighting
 
-### 2. zoromode.js
-The fun stuff:
-- Words falling across the screen
-- Type them = Zoro slashes them
-- Power-ups because regular typing is boring
-- Difficulty gets harder as you go - just like training arcs
+### 2. stats.js
+The brain that keeps track of everything:
+- History storage and retrieval
+- Graph rendering for performance visualization
+- Mode filtering (time, word, and eventually Zoro)
+- Progress tracking over time
 
-### 3. stats.js
-For tryhards who care about their progress:
-- Saves your scores to localStorage
-- Makes pretty graphs of your typing speed
-- Lets you filter between normal mode and Zoro mode
-- Shows your history (or lack thereof)
+### 3. utils.js
+Utility functions used throughout the app:
+- Word generation helpers
+- Time formatting functions
+- Animation utilities
+- DOM manipulation helpers
+- Event handler utilities
 
-### 4. utils.js
-Random helper functions that didn't fit anywhere else:
-- Word generation
-- Time formatting
-- Animation stuff
-- DOM manipulation that I was too lazy to put in the main files
+### 4. zoromode.js
+The last-minute experiment that became a feature:
+- Word spawning and movement
+- User input matching
+- Power-up system
+- Difficulty progression
+- Visual effects for "slashing" words
 
 ## 👾 Game Modes
 
-### Normie Mode
-Your standard typing test:
-- **Time Mode**: Type for 15 seconds, see your WPM
-- **Word Mode**: Type 20 words, see how fast you did it
+### Standard Mode (The Original Plan)
+The traditional typing test with two variants:
+- **Time Mode**: Type as many words as possible in 15 seconds
+  - _Previously had 30s and 60s modes that were removed_
+- **Word Mode**: Type 20 words as fast as possible
+  - _Previously had 10, 50, and 100 word modes that were cut_
 
-### Zoro Mode
-The actually fun part:
+### Zoro Mode (The Last-Minute Addition)
+This was thrown together in the final days of development:
 - Words fall from the top of screen
 - Type them before they hit bottom
 - Get power-ups as you combo
 - Progress through One Piece themed difficulty levels
-- Miss too many = game over, go train more
 
 ## 🔥 Key Features
 
 ### Real-time Feedback
-- Letters highlight as you type
-- Cursor moves along
-- Mistakes show up in red because shame is a great motivator
+- Character-by-character highlighting
+- Error indicators in red
+- Dynamic cursor movement
+- Instant WPM calculation
 
-### Stats Tracking
-- WPM calculation
+### Performance Metrics
+- Words per minute (WPM) calculation
 - Accuracy percentage
-- Error counting
-- Time tracking for the speedrun enthusiasts
+- Error count
+- Time tracking
 
-### History Storage
-- Saves your games so you can see if you're improving
-- Graphs that make it look like I know what I'm doing
-- Filter between modes to see where you suck least
+### History System
+- Saves tests to localStorage
+- Visualization through bar/line charts
+- Filtering by test mode
+- Tracks your last 100 tests
 
 ### Power-up System (Zoro Mode)
-- **Onigiri**: Heal one life because everyone deserves second chances
-- **Haki**: Temporary invincibility because I'm feeling generous
-- **Ashura**: Clear screen when you're about to rage quit
+Added during the final development phase:
+- **Onigiri**: Restores one life
+- **Haki**: Temporary invincibility
+- **Ashura**: Clears all words on screen
 
-### Difficulty Tiers (Zoro Mode)
-- **East Blue**: Baby mode, 3-letter words max
-- **Paradise**: Medium, 4-6 letters
-- **Warlord_Commander**: Hard mode, 7-8 letter monsters 
-- **Yonko**: Keyboard destroyer mode, words that make you question your life choices
+### Difficulty Progression (Zoro Mode)
+- **East Blue**: Simple 3-letter words
+- **Paradise**: Medium 4-6 letter words
+- **Warlord_Commander**: Harder 7-8 letter words
+- **Yonko**: Challenging long words
 
 ## 📁 File Structure
 
 ```
-index.html              # The main HTML file, duh
-script.js               # Starter script
-style.css               # Some global styles
-zorotypinggamewords.json # Where all the words live
+index.html              # Main HTML entry point
+script.js               # Initialization script
+style.css               # Global styles
+zorotypinggamewords.json # Word lists for Zoro mode (added late)
 
-assets/                 # Images and stuff
+assets/                 # Images and media files
   ├── mainlogo.png      # Main logo
-  ├── zoromodelogo.png  # Zoro mode logo
-  ├── ashura.png        # For the Ashura effect
-  ├── zoro.mp4          # Background video because static backgrounds are boring
-  └── [favicon files]   # All those annoying browser icons
+  ├── zoromodelogo.png  # Zoro mode logo (added late)
+  ├── ashura.png        # Ashura effect image
+  ├── zoro.mp4          # Background video for Zoro mode
+  └── [favicon files]   # Various favicon files
 
-js/                    
-  ├── main.js           # Basic typing test
-  ├── zoromode.js       # The cool Zoro mode
-  ├── stats.js          # Stats tracking
-  └── utils.js          # Random helper functions
+js/                     # Core JavaScript modules
+  ├── main.js           # Main typing test logic
+  ├── zoromode.js       # Zoro mode implementation (added late)
+  ├── stats.js          # Statistics and history tracking
+  └── utils.js          # Utility functions
 
-sounds/                 # Audio because silent games are depressing
-  ├── zorobattletheme.mp3 # Epic background music
-  ├── slash1.mp3        # Slash sound
-  ├── slash2.mp3        # Alternative slash sound because variety
+sounds/                 # Audio files
+  ├── zorobattletheme.mp3 # Added for Zoro mode
+  ├── slash1.mp3        # Word hit sound effect
+  ├── slash2.mp3        # Alternative word hit sound
   ├── onigiri.mp3       # Onigiri power-up sound
   ├── haki.mp3          # Haki power-up sound
   ├── checkashura.mp3   # Ashura power-up sound
-  ├── evillaugh1.mp3    # When you lose life
+  ├── evillaugh1.mp3    # Life loss sound
   ├── KO.mp3            # Game over sound
   └── gameover.mp3      # Alternative game over sound
 
-styles/                 # CSS files
-  └── main.css          # Main styles
+styles/                 # CSS stylesheets
+  └── main.css          # Main stylesheet
 ```
 
 ## 💻 Behind the Scenes
 
-### Game State
-I separated the state into different objects because I'm a clean code advocate (sometimes):
-- `gameState`: For the boring typing test
-- `zoroState`: For the cool Zoro mode
-- `statsState`: For all the numbers and graphs
+### Game State Management
+The app uses separate state objects for different features:
+- `gameState`: Handles the core typing test functionality
+- `statsState`: Manages the statistics and history
+- `zoroState`: Added late for the Zoro mode functionality
 
 ### UI Elements
-Everything gets created dynamically because I'm too lazy to write all that HTML:
-- Text display
-- Stats overlay
-- History tables
-- Power-up indicators
+- Dynamic text display that updates as you type
+- Stats overlay that shows real-time performance
+- History tables and graphs
+- Power-up indicators (added for Zoro mode)
 
-### Event Listeners
-- Keyboard listeners for typing
-- Button clicks for switching modes
-- Custom events because I wanted to overcomplicate things
+### Scrapped Features
+Several features were developed but ultimately removed:
+- **Extended Time Tests**: 30s and 60s modes were fully implemented but removed
+- **Additional Word Counts**: 10, 50, and 100 word tests were cut
+- **Code Mode**: A specialized mode for typing code snippets that was abandoned due to syntax highlighting complexities
+- **Custom Text Mode**: Allowing users to paste their own text (removed due to formatting issues)
+- **Account System**: Login functionality was planned but never implemented
 
-### LocalStorage
-Everything gets saved locally so you can close the tab without losing progress:
-- Typing history
-- Zoro mode scores
-- Preferences (if I ever add them)
+### LocalStorage Data Structure
+The app saves two types of history:
+- `typingHistory`: Array of regular typing test results
+- `zoroHistory`: Added later for Zoro mode results
 
 ## ⚔️ Zoro Mode Details
 
 ### Game Loop
-Here's how the Zoro mode runs:
+The late-addition Zoro mode uses a requestAnimationFrame loop:
 
 ```javascript
 function startZoroGameLoop() {
@@ -176,29 +182,29 @@ function startZoroGameLoop() {
     let lastPowerUpCheck = 0;
     
     const gameLoop = (timestamp) => {
-        // Calculate time stuff
+        // Calculate time diff
         const elapsed = timestamp - lastTimestamp;
         lastTimestamp = timestamp;
         
-        // Clear canvas because we're not savages
+        // Clear canvas
         zoroState.ctx.clearRect(0, 0, zoroState.canvas.width, zoroState.canvas.height);
         
-        // Spawn words at intervals
+        // Spawn words based on interval
         if (timestamp - lastWordSpawn > getSpawnInterval()) {
             spawnWord();
             lastWordSpawn = timestamp;
         }
         
-        // Update and draw words
+        // Update word positions and check collisions
         updateWords();
         
-        // Check powerups every second
+        // Update powerup availability
         if (timestamp - lastPowerUpCheck > 1000) {
             updatePowerUps();
             lastPowerUpCheck = timestamp;
         }
         
-        // Keep the loop going if game is still active
+        // Loop if game is active
         if (zoroState.active) {
             zoroState.gameLoop = requestAnimationFrame(gameLoop);
         }
@@ -209,125 +215,95 @@ function startZoroGameLoop() {
 }
 ```
 
-### Word Objects
-Each word in Zoro mode is its own little entity:
+### Word Class
+Each word in Zoro mode is represented by:
 
 ```javascript
 class ZoroWord {
     constructor(word, speed, direction = 'down') {
         this.word = word;
         this.display = word;
-        this.x = Math.random() * (window.innerWidth - 200) + 100; // Random horizontal position
-        this.y = direction === 'down' ? -50 : window.innerHeight + 50; // Start above or below screen
+        this.x = Math.random() * (window.innerWidth - 200) + 100; // Random position
+        this.y = direction === 'down' ? -50 : window.innerHeight + 50; // Start offscreen
         this.speed = speed;
-        this.direction = direction; // 'down' or 'up'
-        this.size = Math.max(16, Math.min(24, 18 + zoroState.level / 2)); // Size based on level
+        this.direction = direction;
+        this.size = Math.max(16, Math.min(24, 18 + zoroState.level / 2)); // Dynamic size
         this.hit = false;
         this.opacity = 1;
-        this.rotation = (Math.random() - 0.5) * 0.2; // Slight random rotation
-        this.color = '#b19cd9'; // Purple because it looks cool
+        this.rotation = (Math.random() - 0.5) * 0.2; // Slight random angle
+        this.color = '#b19cd9';
     }
 
-    // Rest of the methods...
+    // Other methods for updating and drawing
 }
 ```
-
-### Difficulty Progression
-Four tiers of pain:
-1. **East Blue**: Training wheels mode
-2. **Paradise**: Getting somewhat serious
-3. **Warlord_Commander**: Now we're talking
-4. **Yonko**: Pain and suffering
-
-Score thresholds: 0, 3000, 8000, 15000 (I totally balanced these... trust me)
-
-### Power-ups
-Because typing the same way for too long gets boring:
-- **Onigiri**: Get a life (literally)
-- **Haki**: Become invincible for 15 seconds
-- **Ashura**: Destroy all words on screen when you're overwhelmed
 
 ## 📊 Stats System
 
 ### Data Structure
-Two arrays for different game modes:
-- `statsState.history`: For normal typing tests
-- `statsState.zoroHistory`: For Zoro mode games
+Two separate arrays for tracking different game types:
+- `statsState.history`: Standard typing test results
+- `statsState.zoroHistory`: Added later for Zoro mode results
 
-### Visualization
-Two ways to look at your data:
-- Bar charts (default)
-- Line charts (for people who prefer lines)
+### Visualization Options
+- Bar charts (default view)
+- Line charts (toggle option)
+- Filterable by game mode
 
-### Storage
-All saved to localStorage:
-- `typingHistory`: Normal mode history
-- `zoroHistory`: Zoro mode history
+### Calculation Methods
+Key metric calculations:
+- WPM = (characters / 5) / (time in minutes)
+- Accuracy = (correct keystrokes / total keystrokes) * 100
+- Error Rate = (errors / total keystrokes) * 100
 
-## 🔧 Utils and Helpers
+## 🔧 Development Notes
 
-### Word Generation
-Words come from:
-- Default list for normal mode
-- JSON file with themed words for Zoro mode
+### Known Issues
+- Mobile support is limited
+- Word difficulty balance in Zoro mode needs refinement
+- Stats page UI could use improvement
+- Some users might experience performance issues with many falling words
 
-### WPM Calculation
-```javascript
-// WPM = (characters / 5) / (time in minutes)
-// Because 5 characters = 1 word, apparently
-```
+### Browser Compatibility
+- Works on modern browsers (Chrome, Firefox, Edge, Safari)
+- Not tested on IE (because why would you?)
 
-### Animations
-- CSS animations for UI
-- Canvas animations for Zoro mode
-- Custom effects that I spent way too long on
+### Performance Considerations
+- RequestAnimationFrame for smooth animations
+- Limited DOM updates to prevent layout thrashing
+- Canvas rendering for Zoro mode for better performance
+- LocalStorage for lightweight data persistence
 
-## 😤 Development Notes
-
-### Adding New Features
-If you want to add stuff:
-1. Figure out which module it belongs in
-2. Update the state object
-3. Write the feature
-4. Update UI
-5. Add event handlers
-6. Update this doc (or don't, I'm not your boss)
-
-### Browser Support
-Works on modern browsers because I'm not supporting IE11 in 2025:
-- Chrome/Edge/Firefox/Safari should work
-- If you're using something else, why?
-
-### Performance
-Some tips if you're optimizing:
-- Use requestAnimationFrame
-- Don't go crazy with DOM updates
-- Canvas is pretty fast
-- Fonts are render-expensive (learned that the hard way)
+### Future Development Ideas
+- Mobile optimization
+- Custom themes
+- Additional languages
+- More game modes
+- Account system for cross-device sync
+- Multiplayer racing
 
 ---
 
 ## 🖤 About Me
 
-Hey, I'm Aayush Acharya, the sleep-deprived dev who built this while binging One Piece for the third time. TypeSmash started as a "I bet I could build that" project and somehow turned into an actual thing with working code.
+Hey, I'm Aayush Acharya, the dev behind TypeSmash. This started as a simple typing test inspired by MonkeyType, but I got sidetracked and added a One Piece-themed game mode at the last minute (which ended up being pretty fun).
 
 ### My Tech Stack:
-- HTML/CSS/JS (because idk, Am getting called out here soyeah)
-- Currently learning React (when I'm not distracted by side projects or exams)
-- Some backend stuff with Node (but frontend is where the fun is)
-- Excessive amounts of caffeine
+- HTML/CSS/JS (the classics)
+- Learning React and Node
+- Exploring game development concepts
+- Canvas animations
 
 ### What I'm Working On:
-- Making this typing game not crash on mobile
-- Adding more features to Zoro mode (maybe other character modes?)
-- Learning enough to get a job that pays more than my current one
-- Balancing sleep and coding (failing at this one)
+- Improving TypeSmash (maybe adding that mobile support)
+- Other web projects that may or may not see completion
+- Learning new frameworks when I'm not distracted
 
 ### Find me online:
 - GitHub: [github.com/acharya-aayush](https://github.com/acharya-aayush)
 - LinkedIn: [linkedin.com/in/acharyaaayush](https://www.linkedin.com/in/acharyaaayush/)
-- Or just email me if you found that somewhere
+- Email: acharyaaayush2k4@gmail.com
 
 ---
 
-*Last updated May 6, 2025 while procrastinating on other projects*
+*Documentation last updated May 6, 2025*
