@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeSmash | Typing Speed Test</title>
+    
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="manifest" href="assets/site.webmanifest">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header with logo and mode toggles -->
+        <header>
+            <div class="logo" id="logo">
+                <img src="assets/mainlogo.png" alt="TypeSmash" class="logo-image">
+            </div>
+            
+            <div class="mode-switcher">
+                <button class="mode-btn active" id="timed-mode">15s</button>
+                <button class="mode-btn" id="word-mode">20w</button>
+                <button class="stats-btn" id="stats-toggle">Stats</button>
+            </div>
+        </header>
+        
+        <!-- Main typing area -->
+        <main>
+            <div id="typing-container">
+                <div class="text-display" id="text-display"></div>
+                <div class="cursor" id="cursor"></div>
+            </div>
+            
+            <div id="input-area">
+                <input type="text" id="hidden-input" autocomplete="off" autocapitalize="off" autocorrect="off">
+            </div>
+            
+            <!-- Stats display -->
+            <div id="stats-container" class="hidden">
+                <div class="stat">
+                    <div class="stat-label">WPM</div>
+                    <div class="stat-value" id="wpm">0</div>
+                </div>
+                
+                <div class="stat">
+                    <div class="stat-label">Accuracy</div>
+                    <div class="stat-value" id="accuracy">0%</div>
+                </div>
+                
+                <div class="stat">
+                    <div class="stat-label">Characters</div>
+                    <div class="stat-value" id="characters">0</div>
+                </div>
+                
+                <div class="stat">
+                    <div class="stat-label">Errors</div>
+                    <div class="stat-value" id="errors">0</div>
+                </div>
+                
+                <div class="stat">
+                    <div class="stat-label" id="time-label">Time</div>
+                    <div class="stat-value" id="time">0s</div>
+                </div>
+            </div>
+            
+            <div id="restart-prompt" class="hidden">Press <span class="key">Tab</span> to restart</div>
+        </main>
+        
+        <!-- Stats section (hidden by default) -->
+        <section id="stats-section" class="hidden">
+            <div class="stats-header">
+                <h2>Your Typing History</h2>
+                <button class="close-btn" id="close-stats">&times;</button>
+            </div>
+            
+            <div class="filter-controls">
+                <div class="filter-group">
+                    <button class="filter-btn active" id="filter-all">All</button>
+                    <button class="filter-btn" id="filter-timed">15s</button>
+                    <button class="filter-btn" id="filter-word">20w</button>
+                    <button class="filter-btn" id="filter-zoro">Zoro</button>
+                </div>
+                
+                <div class="view-group">
+                    <button class="view-btn active" id="view-bar">Bar</button>
+                    <button class="view-btn" id="view-line">Line</button>
+                </div>
+            </div>
+            
+            <div class="stats-content">
+                <div class="history-graph">
+                    <canvas id="wpm-graph"></canvas>
+                </div>
+                
+                <div class="history-table-container">
+                    <table class="history-table" id="history-table">
+                        <thead>
+                            <tr>
+                                <th>Mode</th>
+                                <th>WPM</th>
+                                <th>Accuracy</th>
+                                <th>Chars</th>
+                                <th>Errors</th>
+                                <th>Time</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Will be filled dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="stats-footer">
+                <button class="danger-btn" id="clear-history">Clear History</button>
+            </div>
+        </section>
+        
+        <!-- Zoro Mode (hidden by default) -->
+        <div id="zoro-container" class="zoro-container hidden">
+            <video id="zoro-bg-video" class="zoro-bg-video" src="assets/zoro.mp4" loop muted></video>
+            <canvas id="zoro-canvas"></canvas>
+            
+            <div class="zoro-ui">
+                <div class="zoro-stats">
+                    <div class="zoro-stat">
+                        <div class="zoro-stat-label">Score</div>
+                        <div class="zoro-stat-value" id="zoro-score">0</div>
+                    </div>
+                    
+                    <div class="zoro-stat">
+                        <div class="zoro-stat-label">Level</div>
+                        <div class="zoro-stat-value" id="zoro-level">1</div>
+                    </div>
+                </div>
+                
+                <div class="zoro-input-area">
+                    <input type="text" id="zoro-input" placeholder="Type words to slash them..." autocomplete="off">
+                </div>
+                
+                <button class="zoro-exit-btn" id="zoro-exit">Exit Zoro Mode</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript files - changed from module to regular scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/stats.js"></script>
+    <script src="js/zoromode.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

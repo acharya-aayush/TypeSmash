@@ -1,0 +1,983 @@
+/* 
+ * TypeSmash - Main Stylesheet
+ * Dark theme with responsive design
+ */
+
+/* CSS Variables for theme colors */
+:root {
+    /* Main theme colors - dark theme */
+    --bg-color: #323437;
+    --main-color: #b19cd9; /* Changed from yellow to lavender */
+    --text-color: #d1d0c5;
+    --error-color: #ca4754;
+    --success-color: #7aac7a;
+    --subtle-color: #646669;
+    --focus-color: #2c2e31;
+    
+    /* Zoro mode colors */
+    --zoro-bg-color: #121212;
+    --zoro-accent: #a88bfa;
+    --zoro-text: #e9e9e9;
+    
+    /* Size variables */
+    --font-size: 1rem;
+    --font-size-large: 1.5rem;
+    --font-size-small: 0.85rem;
+    --border-radius: 4px;
+    
+    /* Animation timing */
+    --transition-speed: 0.3s;
+}
+
+/* Base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto Mono', monospace;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    overflow-x: hidden;
+    transition: background-color var(--transition-speed) ease;
+}
+
+/* App container */
+.app-container {
+    width: 100%;
+    max-width: 1000px;
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header styling */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--subtle-color);
+}
+
+/* Logo styling */
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-image {
+    height: 110px; /* Significantly increased from previous size */
+    margin-right: 10px;
+    transition: transform 0.3s ease;
+}
+
+.logo-image:hover {
+    transform: scale(1.05);
+}
+
+.logo-title {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.mode-switcher {
+    display: flex;
+    gap: 0.75rem; /* Slightly increased gap */
+    align-items: center;
+}
+
+.mode-btn, .stats-btn {
+    background-color: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--subtle-color);
+    border-radius: var(--border-radius);
+    padding: 0.6rem 1.2rem; /* Slightly larger padding */
+    cursor: pointer;
+    font-family: inherit;
+    font-size: var(--font-size);
+    transition: all var(--transition-speed) ease;
+    min-width: 80px; /* Ensure consistent button width */
+    text-align: center;
+}
+
+.mode-btn:hover, .stats-btn:hover {
+    background-color: var(--focus-color);
+}
+
+.mode-btn.active {
+    background-color: var(--main-color);
+    color: var(--bg-color);
+    border-color: var(--main-color);
+    font-weight: bold; /* Make active state more visible */
+}
+
+.stats-btn {
+    background-color: var(--subtle-color);
+    min-width: 90px;
+}
+
+/* Main content styling */
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+}
+
+#typing-container {
+    width: 100%;
+    position: relative;
+    min-height: 150px;
+}
+
+/* Text display styling */
+.text-display {
+    width: 100%;
+    min-height: 150px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.line {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+    min-height: 2rem;
+    gap: 0.8rem;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+
+/* Ensure smooth line transition with a subtle animation */
+@keyframes lineScroll {
+    0% { transform: translateY(10px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+.line.active {
+    opacity: 1;
+}
+
+.line.next {
+    opacity: 0.6;
+}
+
+.line.future {
+    opacity: 0.3;
+}
+
+.line {
+    animation: lineScroll 0.3s ease-out;
+}
+
+.word {
+    position: relative;
+    display: inline-flex;
+    margin-right: 0;
+    margin-bottom: 0;
+}
+
+.word.completed {
+    color: var(--success-color);
+}
+
+.word.current {
+    position: relative;
+}
+
+.char {
+    font-size: 1.5rem;
+    position: relative;
+    transition: color 0.15s ease;
+}
+
+.char.correct {
+    color: var(--success-color);
+}
+
+.char.incorrect {
+    color: var(--error-color);
+}
+
+.char.current {
+    text-decoration: underline;
+}
+
+.char.extra {
+    color: var(--error-color);
+}
+
+.cursor {
+    position: absolute;
+    width: 2px;
+    background-color: var(--main-color); /* Now uses lavender color */
+    transition: left 0.1s ease, top 0.1s ease;
+    animation: blink 1s infinite;
+    z-index: 10;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+#input-area {
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+#hidden-input {
+    opacity: 0;
+    position: absolute;
+}
+
+/* Stats container */
+#stats-container {
+    display: flex;
+    gap: 2rem;
+    padding: 1.5rem;
+    background-color: var(--focus-color);
+    border-radius: var(--border-radius);
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 100px;
+}
+
+.stat-label {
+    font-size: var(--font-size-small);
+    color: var(--subtle-color);
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+}
+
+.stat-value {
+    font-size: var(--font-size-large);
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+#wpm {
+    color: var(--main-color);
+}
+
+#accuracy {
+    color: var(--success-color);
+}
+
+#errors {
+    color: var(--error-color);
+}
+
+/* Restart prompt */
+#restart-prompt {
+    font-size: var(--font-size);
+    color: var(--subtle-color);
+    padding: 1rem;
+    text-align: center;
+}
+
+.key {
+    background-color: var(--focus-color);
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--border-radius);
+    margin: 0 0.3rem;
+    color: var(--main-color);
+}
+
+/* Stats section */
+#stats-section {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-color);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.stats-header h2 {
+    font-size: 1.8rem;
+    color: var(--main-color);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 2rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close-btn:hover {
+    color: var(--error-color);
+}
+
+.filter-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.filter-group, .view-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.filter-btn, .view-btn {
+    background-color: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--subtle-color);
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: var(--font-size-small);
+    transition: all 0.2s ease;
+}
+
+.filter-btn:hover, .view-btn:hover {
+    background-color: var(--focus-color);
+}
+
+.filter-btn.active, .view-btn.active {
+    background-color: var(--main-color);
+    color: var(--bg-color);
+    border-color: var(--main-color);
+}
+
+#filter-zoro.active {
+    background-color: var(--zoro-accent);
+    border-color: var(--zoro-accent);
+}
+
+.stats-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.history-graph {
+    width: 100%;
+    height: 300px;
+    background-color: var(--focus-color);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+}
+
+#wpm-graph {
+    width: 100%;
+    height: 100%;
+}
+
+.history-table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-small);
+}
+
+.history-table th,
+.history-table td {
+    padding: 0.75rem;
+    text-align: center;
+    border-bottom: 1px solid var(--subtle-color);
+}
+
+.history-table th {
+    color: var(--main-color);
+    font-weight: bold;
+}
+
+.history-table tbody tr:hover {
+    background-color: var(--focus-color);
+}
+
+.zoro-mode-cell {
+    color: var(--zoro-accent);
+    font-weight: bold;
+}
+
+.stats-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 1rem;
+}
+
+.danger-btn {
+    background-color: var(--error-color);
+    color: var(--text-color);
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: var(--font-size-small);
+    transition: background-color 0.2s ease;
+}
+
+.danger-btn:hover {
+    background-color: #e03b49;
+}
+
+/* Helper classes */
+.hidden {
+    display: none !important;
+}
+
+.flash {
+    animation: flash 0.5s;
+}
+
+@keyframes flash {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* Zoro Mode Styling */
+.zoro-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--zoro-bg-color);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.zoro-bg-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.6; /* Semi-transparent to ensure words are visible */
+    filter: brightness(0.7) contrast(1.2); /* Adjust video brightness and contrast */
+    z-index: 1001; /* Above background but below canvas */
+}
+
+.zoro-active {
+    background-color: var(--zoro-bg-color);
+}
+
+#zoro-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1002; /* Above video but below UI */
+}
+
+.zoro-ui {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    z-index: 1010;
+}
+
+.zoro-stats {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+}
+
+.zoro-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.zoro-stat-label {
+    font-size: var(--font-size-small);
+    color: var(--zoro-text);
+    text-transform: uppercase;
+}
+
+.zoro-stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--zoro-accent);
+}
+
+.zoro-input-area {
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+}
+
+#zoro-input {
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 2px solid var(--zoro-accent);
+    border-radius: var(--border-radius);
+    padding: 0.8rem 1rem;
+    font-family: inherit;
+    font-size: var(--font-size);
+    color: var(--zoro-text);
+    text-align: center;
+    outline: none;
+}
+
+#zoro-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+#zoro-input:focus {
+    box-shadow: 0 0 10px var(--zoro-accent);
+}
+
+.zoro-exit-btn {
+    background-color: rgba(0, 0, 0, 0.7);
+    color: var(--zoro-text);
+    border: 2px solid var(--zoro-accent);
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1.5rem;
+    font-family: inherit;
+    font-size: var(--font-size);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 1rem;
+}
+
+.zoro-exit-btn:hover {
+    background-color: var(--zoro-accent);
+    color: var(--zoro-bg-color);
+}
+
+/* Zoro Mode UI Elements */
+.zoro-lives {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    z-index: 1020;
+}
+
+.zoro-heart {
+    font-size: 2rem;
+    filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.zoro-power-ups {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    z-index: 1020;
+}
+
+.power-up {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: var(--border-radius);
+    opacity: 0.5;
+    transition: all 0.3s ease;
+}
+
+.power-up.available {
+    opacity: 1;
+    border-left: 3px solid var(--zoro-accent);
+    animation: glow 2s infinite;
+}
+
+@keyframes glow {
+    0%, 100% { box-shadow: 0 0 5px var(--zoro-accent); }
+    50% { box-shadow: 0 0 15px var(--zoro-accent); }
+}
+
+.power-icon {
+    font-size: 1.5rem;
+}
+
+.power-name {
+    color: var(--zoro-text);
+    font-size: var(--font-size-small);
+}
+
+.zoro-combo {
+    position: absolute;
+    top: 4rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1020;
+}
+
+.combo-count {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--zoro-accent);
+}
+
+.combo-label {
+    font-size: var(--font-size-small);
+    color: var(--zoro-text);
+}
+
+.combo-update {
+    animation: pop 0.3s ease;
+}
+
+@keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+/* Sword Slash Effect */
+.sword-slash {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background-image: url('../assets/slash-effect.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    z-index: 1015;
+    transform: translate(-50%, -50%);
+    animation: slash 0.3s forwards;
+}
+
+@keyframes slash {
+    0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1.5) rotate(45deg); opacity: 0; }
+}
+
+/* Ashura Clone Effect */
+.ashura-clones {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1005;
+}
+
+.ashura-clone {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: url('../assets/zoromodelogo.png');
+    background-size: 200px;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.3;
+    filter: hue-rotate(45deg) saturate(2);
+    animation: fadeOutClone 3s forwards;
+}
+
+@keyframes fadeOutClone {
+    0% { opacity: 0; }
+    20% { opacity: 0.3; }
+    80% { opacity: 0.3; }
+    100% { opacity: 0; }
+}
+
+/* Glitch Effect for Zoro Mode Trigger */
+.glitch-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.1);
+    pointer-events: none;
+    mix-blend-mode: overlay;
+    z-index: 1100;
+}
+
+.glitch-1 {
+    animation: glitch1 0.2s infinite;
+    background-image: linear-gradient(45deg, transparent 5%, var(--zoro-accent) 5%, var(--zoro-accent) 10%, transparent 10%);
+}
+
+.glitch-2 {
+    animation: glitch2 0.3s infinite;
+    background-image: linear-gradient(135deg, transparent 5%, var(--error-color) 5%, var(--error-color) 10%, transparent 10%);
+}
+
+.glitch-3 {
+    animation: glitch3 0.4s infinite;
+    background-image: linear-gradient(90deg, transparent 5%, var(--main-color) 5%, var(--main-color) 10%, transparent 10%);
+}
+
+@keyframes glitch1 {
+    0%, 100% { background-position: 0 0; }
+    50% { background-position: 100px 50px; }
+}
+
+@keyframes glitch2 {
+    0%, 100% { background-position: 50px 0; }
+    50% { background-position: -50px 100px; }
+}
+
+@keyframes glitch3 {
+    0%, 100% { background-position: 0 50px; }
+    50% { background-position: 100px -50px; }
+}
+
+/* Shake effects */
+.shake-1 {
+    animation: shake1 0.3s;
+}
+
+.shake-2 {
+    animation: shake2 0.5s;
+}
+
+.shake-3 {
+    animation: shake3 0.7s;
+}
+
+@keyframes shake1 {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-3px); }
+}
+
+@keyframes shake2 {
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    25% { transform: translateX(-7px) rotate(-1deg); }
+    50% { transform: translateX(7px) rotate(1deg); }
+    75% { transform: translateX(-5px) rotate(-0.5deg); }
+}
+
+@keyframes shake3 {
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    20% { transform: translateX(-10px) rotate(-2deg); }
+    40% { transform: translateX(10px) rotate(2deg); }
+    60% { transform: translateX(-7px) rotate(-1deg); }
+    80% { transform: translateX(7px) rotate(1deg); }
+}
+
+/* Power-up visual effects */
+.onigiri-flash {
+    animation: onigiriFlash 0.5s;
+}
+
+@keyframes onigiriFlash {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.3) sepia(0.5); }
+}
+
+.haki-active {
+    filter: contrast(1.2) sepia(0.2);
+    animation: hakiPulse 3s;
+}
+
+@keyframes hakiPulse {
+    0% { filter: contrast(1) sepia(0); }
+    10% { filter: contrast(1.3) sepia(0.2); }
+    90% { filter: contrast(1.3) sepia(0.2); }
+    100% { filter: contrast(1) sepia(0); }
+}
+
+/* Difficulty Tier Transition Animation */
+.tier-transition {
+    animation: tierFlash 1.5s;
+}
+
+@keyframes tierFlash {
+    0% { filter: brightness(1); }
+    25% { filter: brightness(1.5); }
+    50% { filter: brightness(1); }
+    75% { filter: brightness(1.3); }
+    100% { filter: brightness(1); }
+}
+
+.zoro-difficulty-transition {
+    animation: tierAppear 3s forwards;
+}
+
+@keyframes tierAppear {
+    0% { opacity: 0; transform: translate(-50%, -70%) scale(0.8); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        gap: 1.5rem; /* Increased gap for better spacing */
+        align-items: center;
+        padding-bottom: 1.5rem;
+    }
+    
+    .logo-image {
+        height: 60px; /* Slightly smaller on mobile but still larger than original */
+    }
+    
+    .mode-switcher {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .mode-btn, .stats-btn {
+        flex: 1;
+        max-width: 120px; /* Limit maximum width on mobile */
+    }
+    
+    #stats-container {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+    }
+    
+    .stat {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .zoro-stats {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+    }
+    
+    .zoro-power-ups {
+        flex-direction: row;
+        top: auto;
+        right: auto;
+        bottom: 1rem;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .zoro-lives {
+        top: auto;
+        left: auto;
+        bottom: 5rem;
+        right: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --font-size: 0.9rem;
+        --font-size-large: 1.3rem;
+        --font-size-small: 0.75rem;
+    }
+    
+    .app-container {
+        padding: 1rem 0.5rem;
+    }
+    
+    .char {
+        font-size: 1.2rem;
+    }
+    
+    #stats-section {
+        padding: 1rem;
+    }
+    
+    .filter-controls {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .filter-group, .view-group {
+        justify-content: center;
+    }
+    
+    .zoro-ui {
+        bottom: 1rem;
+    }
+    
+    .zoro-input-area {
+        padding: 0.5rem;
+    }
+    
+    #zoro-input {
+        padding: 0.5rem;
+    }
+    
+    .zoro-power-ups {
+        flex-direction: column;
+        right: 0.5rem;
+        bottom: auto;
+        top: 50%;
+        transform: translateY(-50%);
+        left: auto;
+    }
+    
+    .power-up {
+        padding: 0.3rem 0.6rem;
+    }
+    
+    .power-icon {
+        font-size: 1.2rem;
+    }
+}
