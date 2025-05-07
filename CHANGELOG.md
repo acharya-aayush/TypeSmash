@@ -90,6 +90,14 @@ Performed final quality assurance checks. Fixed minor UI update bug in Zoro Mode
 **09:52 PM**  
 Project completion: TypeSmash finalized with both standard typing test functionality and the innovative Zoro Mode, representing a unique combination of typing practice and gamified experience.
 
+## May 7, 2025 - Post-Launch Bug Fix
+
+**02:15 PM**  
+Identified critical bug in Zoro Mode where the "Play Again" functionality after game over was not working properly due to the game state not being properly reactivated.
+
+**03:40 PM**  
+Fixed Zoro Mode reset issue by properly setting the active state flag in the restartZoroGame function, ensuring players can continue playing multiple rounds without having to exit and reactivate the mode.
+
 ---
 
-*TypeSmash by Aayush Acharya - A project that evolved from a conventional typing test into something unexpectedly creative....Roronoa Zoro*
+*TypeSmash by Aayush Acharya - A project that evolved from a conventional typing test into something unexpectedly creative*

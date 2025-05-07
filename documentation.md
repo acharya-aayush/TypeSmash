@@ -3,7 +3,7 @@
 ## 😶‍🌫️ What's this whole thing?
 TypeSmash is a typing test app that I built to help people improve their typing speed and accuracy. Clean UI, no distractions, just you and your keyboard fighting for those sweet WPM numbers. Oh, and as a last-minute addition, there's a weird One Piece-inspired mode where Zoro slashes words.
 
-## 🧠 Architecture (fancy word for "how I organized this mess")
+## 🧠 Architecture
 
 ```
                     +---------------+
@@ -306,4 +306,4 @@ Hey, I'm Aayush Acharya, the dev behind TypeSmash. This started as a simple typi
 
 ---
 
-*Documentation last updated May 6, 2025*
+*Documentation last updated May 5, 2025*

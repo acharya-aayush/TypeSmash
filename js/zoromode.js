@@ -744,6 +744,9 @@ function restartZoroGame() {
     // Record new start time
     zoroState.startTime = Date.now();
     
+    // Set active flag to true
+    zoroState.active = true;
+    
     // Start a new game loop
     startZoroGameLoop();
 }
