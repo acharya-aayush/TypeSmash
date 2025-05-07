@@ -924,6 +924,38 @@ main {
     }
 }
 
+/* Social icons */
+#social-links {
+    position: absolute;
+    bottom: 2rem;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    z-index: 10;
+    transition: opacity 0.3s ease;
+}
+
+.social-icon {
+    color: var(--subtle-color);
+    font-size: 1.8rem;
+    transition: all 0.3s ease;
+}
+
+.social-icon:hover {
+    color: var(--main-color);
+    transform: translateY(-3px);
+}
+
+/* Hide social icons when typing is active or in Zoro mode */
+.typing-active #social-links, 
+.zoro-active #social-links {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Media queries for responsive design */
 @media (max-width: 480px) {
     :root {
         --font-size: 0.9rem;

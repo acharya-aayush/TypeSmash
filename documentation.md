@@ -277,10 +277,7 @@ Key metric calculations:
 ### Future Development Ideas
 - Mobile optimization
 - Custom themes
-- Additional languages
 - More game modes
-- Account system for cross-device sync
-- Multiplayer racing
 
 ---
 

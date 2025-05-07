@@ -5,23 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TypeSmash | Typing Speed Test</title>
     
-    <!-- Favicon -->
+    <!-- Icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
     <link rel="manifest" href="assets/site.webmanifest">
     
-    <!-- Google Fonts -->
+    <!-- Fonts - Roboto Mono as it gives a clean look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     
-    <!-- Stylesheets -->
+    <!-- Social icons - yeah I'm online -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styling - just the one file thank god -->
     <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
     <div class="app-container">
-        <!-- Header with logo and mode toggles -->
+        <!-- Header with the logo and mode buttons -->
         <header>
             <div class="logo" id="logo">
                 <img src="assets/mainlogo.png" alt="TypeSmash" class="logo-image">
@@ -34,7 +37,7 @@
             </div>
         </header>
         
-        <!-- Main typing area -->
+        <!-- Main typing area where stuff happens -->
         <main>
             <div id="typing-container">
                 <div class="text-display" id="text-display"></div>
@@ -45,7 +48,7 @@
                 <input type="text" id="hidden-input" autocomplete="off" autocapitalize="off" autocorrect="off">
             </div>
             
-            <!-- Stats display -->
+            <!-- Stats - shows up while you type -->
             <div id="stats-container" class="hidden">
                 <div class="stat">
                     <div class="stat-label">WPM</div>
@@ -74,9 +77,19 @@
             </div>
             
             <div id="restart-prompt" class="hidden">Press <span class="key">Tab</span> to restart</div>
+            
+            <!-- Social links - follow me or whatever -->
+            <div id="social-links">
+                <a href="https://github.com/acharya-aayush" target="_blank" class="social-icon">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="https://www.linkedin.com/in/acharyaaayush" target="_blank" class="social-icon">
+                    <i class="fab fa-linkedin"></i>
+                </a>
+            </div>
         </main>
         
-        <!-- Stats section (hidden by default) -->
+        <!-- Stats screen - shows your damn history -->
         <section id="stats-section" class="hidden">
             <div class="stats-header">
                 <h2>Your Typing History</h2>
@@ -116,7 +129,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Will be filled dynamically -->
+                            <!-- Gets filled with your typing history -->
                         </tbody>
                     </table>
                 </div>
@@ -127,7 +140,7 @@
             </div>
         </section>
         
-        <!-- Zoro Mode (hidden by default) -->
+        <!-- Zoro Mode - the feature that wasn't supposed to take over -->
         <div id="zoro-container" class="zoro-container hidden">
             <video id="zoro-bg-video" class="zoro-bg-video" src="assets/zoro.mp4" loop muted></video>
             <canvas id="zoro-canvas"></canvas>
@@ -154,7 +167,7 @@
         </div>
     </div>
     
-    <!-- JavaScript files - changed from module to regular scripts -->
+    <!-- Scripts - where the magic happens -->
     <script src="js/utils.js"></script>
     <script src="js/stats.js"></script>
     <script src="js/zoromode.js"></script>

@@ -209,6 +209,9 @@ function resetTest() {
     elements.errorsDisplay.textContent = '0';
     elements.timeDisplay.textContent = typingGame.timeMode ? '15s' : '0/' + typingGame.wordLimit;
     
+    // Remove typing-active class to show social icons again
+    document.body.classList.remove('typing-active');
+    
     // Focus input
     elements.hiddenInput.focus();
 }
@@ -414,6 +417,8 @@ function handleTyping(e) {
     // Only start test if it's not active AND not done typing
     if (!typingGame.active && !typingGame.doneTyping) {
         startTest();
+        // Add typing-active class to body when typing starts
+        document.body.classList.add('typing-active');
     }
     
     // Ignore if test is complete
