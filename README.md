@@ -22,7 +22,7 @@ TypeSmash is a no-nonsense typing test that lets you track your speed, accuracy,
 
 ## 🧃 How to Use
 
-1. Go to [github pages link would be here]
+1. Go to github.com/acharya-aayush/typesmash
 2. Choose your test mode (time or word count)
 3. Type the words shown on screen
 4. Get your results and feel good (or bad) about yourself
