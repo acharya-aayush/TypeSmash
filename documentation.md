@@ -266,11 +266,32 @@ Two separate arrays for tracking different game types:
 - Filterable by game mode and word count
 - Color coding for different test modes
 
+### Stats Display
+- Stats section must be manually opened via the stats toggle button
+- Manual stats viewing allows for better user control over the interface
+- Deliberate decision to avoid automatic popups that might disrupt user flow
+- Technical limitation: DOM event timing conflicts with stats rendering prevented reliable auto-display
+
 ### Calculation Methods
 Key metric calculations:
 - WPM = (characters / 5) / (time in minutes)
 - Accuracy = (correct keystrokes / total keystrokes) * 100
 - Error Rate = (errors / total keystrokes) * 100
+
+## 🎵 Audio System
+
+### Sound Management
+- Dedicated audio context for handling all game sounds
+- Volume controls for different sound types:
+  - Background music plays at 40% volume (increased from 20%)
+  - Sound effects play at 100% volume for maximum impact
+- Audio suspension when game is exited to prevent memory leaks
+- Preloading of audio files to ensure smooth gameplay
+
+### Sound Effects
+- Typing feedback: Two different slash sounds for variety
+- Power-up activations: Unique sounds for each ability (Onigiri, Haki, Ashura)
+- Game events: Level-up, difficulty tier change, game over
 
 ## 🔧 Development Notes
 
@@ -279,6 +300,11 @@ Key metric calculations:
 - Word difficulty balance in Zoro mode needs refinement
 - Stats page UI could use improvement
 - Some users might experience performance issues with many falling words
+
+### Recent Improvements
+- Audio system overhaul with proper gain management
+- Power-up thresholds rebalanced (Onigiri: 5000, Haki: 1000, Ashura: 7500)
+- Improved difficulty progression in higher levels
 
 ### Browser Compatibility
 - Works on modern browsers (Chrome, Firefox, Edge, Safari)

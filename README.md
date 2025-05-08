@@ -1,74 +1,66 @@
 # TypeSmash 💻⌨️
 
-A sleek, minimalist typing test that doesn't suck. Check your typing speed without the bloat.
+A minimalist typing test with detailed statistics, multiple test modes, and a surprise arcade game mode. Inspired by MonkeyType and One Piece.
 
-![TypeSmash](assets/mainlogo.png)
+![TypeSmash Logo](assets/mainlogo.png)
 
-## 🔥 What's this?
-TypeSmash is a no-nonsense typing test that lets you track your speed, accuracy, and progress over time. Built with clean design principles inspired by MonkeyType but with my own twist. Perfect for:
-- Practicing your typing skills
-- Competing with yourself (or friends)
-- Looking productive when your boss walks by
+## 🚀 Features
 
-## ⚔️ Core Features
+### Standard Typing Test
+- **15 Second Mode**: Race against the clock with a quick 15-second test
+- **Word Modes**: Test your typing with different word counts (20, 50, 100, 200, 500, or 1000 words)
+- **Meaningful Passages**: Read and type coherent text passages rather than random words
 
-- **Clean, distraction-free UI** - Focus on typing, not flashy animations
-- **Multiple test modes**:
-  - Time-based: 15 second sprint
-  - Word-based: Multiple word counts (20, 50, 100, 200, 500, and 1000 words)
-  - Meaningful passages for word mode tests (not just random words)
-- **Detailed statistics** - Track WPM, accuracy, error percentage
-- **History tracking** - See your progress over time with fancy graphs
-- **Dark mode by default** - Because I care about your eyes
+### Advanced Statistics
+- **WPM Tracking**: Track your Words Per Minute over time
+- **Accuracy Metrics**: Monitor your typing precision with detailed accuracy stats
+- **Visual History**: View your progress with bar and line charts
+- **Filtering**: Filter statistics by test mode and word count
 
-## 🧃 How to Use
+### User Experience
+- **Dark Mode**: Eye-friendly dark theme for comfortable typing
+- **Real-time Feedback**: Character-by-character verification as you type
+- **Responsive Design**: Adapts to different screen sizes (best on desktop)
+- **Custom Sounds**: Audio feedback for a satisfying typing experience
 
-1. Go to github.com/acharya-aayush/typesmash
-2. Choose your test mode (time or word count)
-3. Type the words shown on screen
-4. Get your results and feel good (or bad) about yourself
-5. Repeat until RSI develops
+## 🎮 How to Use
 
-## 📊 Stats & History
+### Basic Controls
+1. **Choose a Mode**: Click "15s" for timed mode or "Words" for word count mode
+2. **Start Typing**: Just start typing to begin the test
+3. **View Stats**: See your results instantly when the test ends
+4. **Restart**: Press Tab to quickly restart a test
 
-TypeSmash keeps track of your last 100 typing tests, showing you:
-- Words per minute (WPM)
-- Accuracy percentage
-- Character count
-- Error count
-- Time elapsed
+### Word Count Selection
+1. Click the "Words" button to select word mode
+2. Choose from the dropdown: 20, 50, 100, 200, 500, or 1000 words
+3. Start typing to begin with your selected word count
 
-View your history as bar graphs or line charts to track your improvement over time.
+### Stats Navigation
+- **Open Stats View**: Click the stats icon to manually open detailed statistics
+- **Filter Stats**: Use filter buttons to view specific test types
+- **Change View**: Switch between bar chart and line graph views
+- **Clear History**: Remove all saved history if desired
+- **Note**: Stats must be manually opened after each test (automatic display was removed due to event timing issues)
 
-## 📝 Word Mode
+## 🎵 Audio System
 
-The word mode has been expanded to include various word counts:
-- **20 words**: Quick test for a speed check
-- **50 words**: Short paragraphs to build rhythm
-- **100 words**: Medium-length passages
-- **200 words**: Extended passages to test endurance
-- **500 words**: Long-form typing challenge
-- **1000 words**: Marathon typing session
+The latest update includes significant improvements to the audio system:
 
-All word modes feature meaningful text passages instead of random words, making the typing experience more engaging and realistic.
+- **Volume Balance**: Background music plays at 40% volume with sound effects at full volume
+- **Audio Management**: Proper suspension of audio context when exiting game modes
+- **Sound Preloading**: Improved loading with better error handling
+- **Audio Feedback**: Enhanced sound effects for typing, power-ups, and game events
 
-## ⌛ Scrapped Features
+## ⚖️ Power-up Balancing
 
-Several features were developed but ultimately removed due to scope/time constraints:
+The recent update rebalanced power-ups in Zoro Mode to improve gameplay:
 
-- **Extended Time Tests** - 30 and 60 second modes were fully working but removed to focus on core experience
-- **Code Mode** - A specialized mode for practicing typing code in Python and JavaScript. Removed due to headaches with syntax highlighting and tab/indentation handling
-- **Custom Text Mode** - Allowing users to paste their own text was abandoned due to formatting issues
-- **Account System** - Login functionality to sync stats across devices (maybe someday)
+- **Onigiri**: Now requires 5000 points (increased from 100)
+- **Haki**: Now requires 1000 points (increased from 200)
+- **Ashura**: Now requires 7500 points (increased from 350)
 
-## ⚙️ Tech Stack
-- Plain HTML, CSS, JS (kept it simple)
-- LocalStorage for data persistence
-- Canvas for stats visualization
-- No frameworks because I'm a purist (or lazy, take your pick)
-
-## 📱 Mobile Support
-Currently optimized for desktop. Mobile support is planned but not implemented because typing on phones is painful anyway.
+These adjustments create a more challenging progression system and prevent power-up abuse.
 
 ## 🗡️ Oh, and there's Zoro Mode... (last minute addition)
 
@@ -77,23 +69,23 @@ Currently optimized for desktop. Mobile support is planned but not implemented b
 A completely unplanned feature added in the final days of development. Words fall from the top of the screen, and you type them before they hit the bottom. Inspired by One Piece, because why not.
 
 ### Difficulty Tiers in Zoro Mode:
-- **East Blue** – 3-letter baby words for beginners
-- **Paradise** – 4-6 letter words to test your skills
-- **Warlord_Commander** – 7-8 letter challenges for the confident
-- **Yonko** – Long, complex words that will break your fingers
+- East Blue → Alabasta → Skypiea → Water 7 → Enies Lobby → and many more!
+- Each tier increases word speed and difficulty
+- Word length increases as you progress through levels
 
 ### Controls:
-- Type the words to slash them
-- Type "onigiri" to restore 1 life
-- Type "haki" for temporary invincibility
-- Type "ashura" to clear the screen
-
-This mode was totally thrown together at the end but somehow became one of the most fun parts of the project. Funny how that works.
+- Type the falling words to slash them
+- Use power-ups by typing their names or pressing number keys:
+  - "onigiri" or 1: Clear all words on screen (requires 5000 points)
+  - "haki" or 2: Slow down words temporarily (requires 1000 points)
+  - "ashura" or 3: Automatic word slashing for 5 seconds (requires 7500 points)
 
 ### Recent Fixes (v0.8.0):
 - Fixed audio issues with the zorobattletheme sound not playing
-- Adjusted background music volume to 20% so it doesn't overpower other sound effects
+- Increased background music volume to 40% for better audibility
 - Implemented proper audio gain management for all sound effects
+- Added proper audio context suspension when exiting Zoro mode
+- Rebalanced power-up thresholds for better gameplay progression
 
 ### Upcoming Improvements (v0.8.1):
 - Power-up cooldown system to prevent spamming
@@ -107,34 +99,40 @@ This mode was totally thrown together at the end but somehow became one of the m
 - Visual indicators for power-up cooldowns
 - Proper separation of Zoro mode stats from regular typing test data
 
-## 🎮 Future Plans
-- Actually implement mobile support
-- Add back some of the scrapped features in a cleaner way
-- Custom themes beyond just dark mode
-- More word dictionaries/language support
-- Multiplayer races (ambitious, but would be cool)
-- Luffy mode? Who knows.
+## 🚀 Getting Started
 
-## 🎧 Credits & Acknowledgements
-- One Piece for being goated
-- Claude AI for doing most of the heavy coding (couldn't have built this without you)
-- Grok AI for researching assets and helping with resources
-- GPT for basic ideas and starting concepts
-- Me for having the idea and gluing everything together
-- Aarjan for suggesting I build a typing test in the first place
-- Anthropic, OpenAI and xAI for making cool AI tools
-- You for actually reading this far
+### Online Version
+Visit [typesmash.netlify.app](https://typesmash.netlify.app) to use TypeSmash online.
 
-## 🖤 Contact
-Got suggestions? Found bugs? Want to tell me this is the best typing game ever?
-- Email: acharyaaayush2k4@gmail.com
+### Local Installation
+1. Clone this repository
+2. Open `index.html` in your browser
+3. Start typing!
+
+## 🔧 Technical Details
+
+- Built with vanilla JavaScript, HTML, and CSS
+- Uses Canvas API for Zoro Mode animations
+- LocalStorage for saving typing history
+- No external dependencies or frameworks
+
+## 🤝 Contributing
+
+This is a personal project, but I'm open to contributions! Feel free to:
+- Report bugs
+- Suggest features
+- Submit pull requests
+
+## 📝 License
+
+MIT License - See [LICENSE](LICENSE) for details.
+
+## 👋 About Me
+
+I'm Aayush Acharya, a CS student and web developer.
 - GitHub: [github.com/acharya-aayush](https://github.com/acharya-aayush)
-- LinkedIn: [linkedin.com/in/acharyaaayush](https://www.linkedin.com/in/acharyaaayush/)
-
-## 🚧 License
-Do whatever you want with this code. Credit would be nice but I can't stop you anyway.
+- Email: acharyaaayush2k4@gmail.com
 
 ---
 
-*made with determination and sleep deprivation by Aayush Acharya*
-*last updated: May 8, 2025*
+*Hope you enjoy TypeSmash! Let me know if you break any WPM records!*

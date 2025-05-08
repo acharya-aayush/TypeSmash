@@ -1,17 +1,46 @@
 # TypeSmash Changelog
 
-## v0.8.0 - 2025-05-08 (Meaningful Passages & Audio Fixes Update)
+## v0.8.0 - 2025-05-08 (Audio Fixes & Power-ups Update)
 
+- **audio**: Fixed zorobattletheme.mp3 not playing in Zoro mode
+- **audio**: Increased zorobattletheme volume from 20% to 40% for better audibility
+- **audio**: Implemented proper audio gain management for all sound effects
+- **fix**: Added proper audio context suspension when exiting Zoro mode
+- **enhance**: Improved sound preloading with better error handling
+- **balance**: Rebalanced power-up thresholds in Zoro mode:
+  - Onigiri: 5000 points (was previously 100)
+  - Haki: 1000 points (was previously 200)
+  - Ashura: 7500 points (was previously 350)
+- **feat**: Implemented meaningful passages in word mode
+- **feat**: Added `getRandomPassage` function in utils.js
 - **fix**: Fixed critical bug where word mode wasn't loading properly
-- **feat**: Implemented missing `getRandomPassage` function in utils.js
-- **feat**: Added proper handling for loading text passages in word mode
 - **enhance**: Improved error handling and debugging for word loading functionality
-- **feat**: Added `getPassageWordCount` function to properly track word counts
-- **fix**: Resolved syntax error with extraneous closing brace in utils.js
-- **enhance**: Added detailed console logging for word collection loading status
-- **audio**: Fixed zorobattletheme sound not playing in Zoro mode
-- **audio**: Adjusted zorobattletheme volume to 20% to prevent overpowering other sound effects
-- **fix**: Implemented proper audio gain management for all sound effects in Zoro mode
+- **ui**: Removed automatic stats display due to event timing conflicts with DOM rendering
+- **fix**: Stats section now requires manual opening via the stats toggle button
+
+## v0.7.0 - 2025-05-07 (Meaningful Passages)
+
+- **feat**: Added JSON-based passage collection for more engaging typing content
+- **feat**: Implemented word mode variants (20w, 50w, 100w, 200w, 500w, 1000w)
+- **enhance**: Added passage selection system for coherent typing experiences
+- **ui**: Created word count dropdown for selecting different test lengths
+- **stats**: Enhanced statistics to track different word count categories
+
+## v0.6.1 - 2025-05-07 (Bug Fix)
+
+- **fix**: Fixed critical "Play Again" functionality in arcade mode
+- **fix**: Properly reset game state flag in restartZoroGame function
+- **fix**: Ensured proper state management between multiple gameplay sessions
+
+## v0.6.0 - 2025-05-06 (QA & Documentation)
+
+- **fix**: Resolved statistics display bug in history view
+- **fix**: Fixed event listener implementation on filter button
+- **docs**: Created README and comprehensive documentation
+- **refactor**: Optimized arcade mode performance
+- **fix**: Resolved UI update bug in power-up display system
+- **chore**: Removed debug console logs
+- **release**: Finalized v1.0 with both standard typing test and arcade mode
 
 ## [PLANNED] v0.8.1 - 2025-05-20 (Zoro Mode Balancing)
 
@@ -26,7 +55,7 @@
 - **fix**: Prevent stats confusion between WPM and Zoro mode score
 - **enhance**: Separate Zoro mode statistics from "All" section to prevent data corruption
 
-## [PLANNED] v0.9.0 - 2025-05-30 (HTTPS Server Implementation)
+## v0.9.0 - 2025-05-30 (HTTPS Server Implementation)
 
 - **feat**: Add HTTPS Python server for secure local development
 - **security**: Implement SSL certificate generation for local testing
