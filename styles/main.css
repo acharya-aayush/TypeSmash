@@ -48,7 +48,7 @@ body {
 /* App container */
 .app-container {
     width: 100%;
-    max-width: 1000px;
+    max-width: 900px;
     min-height: 100vh;
     margin: 0 auto;
     padding: 2rem 1rem;
@@ -480,9 +480,9 @@ main {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: var(--zoro-bg-color);
     z-index: 1000;
     overflow: hidden;
+    background-color: #000;
 }
 
 .zoro-bg-video {
@@ -492,13 +492,9 @@ main {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0.6; /* Semi-transparent to ensure words are visible */
-    filter: brightness(0.7) contrast(1.2); /* Adjust video brightness and contrast */
-    z-index: 1001; /* Above background but below canvas */
-}
-
-.zoro-active {
-    background-color: var(--zoro-bg-color);
+    opacity: 0.6;
+    z-index: 1;
+    pointer-events: none; /* Prevent video from capturing clicks */
 }
 
 #zoro-canvas {
@@ -507,364 +503,238 @@ main {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1002; /* Above video but below UI */
+    z-index: 10;
+    pointer-events: none; /* Allow clicks to pass through canvas */
 }
 
-.zoro-ui {
+.zoro-score-display {
     position: absolute;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 800px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    z-index: 1010;
+    bottom: 20px;
+    right: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #b19cd9;
+    padding: 12px;
+    border-radius: 5px;
+    border: 2px solid #b19cd9;
+    z-index: 20;
+    min-width: 200px;
+    font-family: 'Roboto Mono', monospace;
+    box-shadow: 0 0 15px rgba(177, 156, 217, 0.5);
+    text-align: right;
+    pointer-events: none; /* Allow clicks to pass through the score display */
 }
 
-.zoro-stats {
+.level-indicator {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+    text-align: center;
+    color: #ff9900;
+    text-shadow: 0 0 5px rgba(255, 153, 0, 0.7);
+}
+
+.score-line {
     display: flex;
     justify-content: space-between;
-    width: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    padding: 1rem;
-    border-radius: var(--border-radius);
-    margin-bottom: 1rem;
+    margin-bottom: 5px;
 }
 
-.zoro-stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.zoro-stat-label {
-    font-size: var(--font-size-small);
-    color: var(--zoro-text);
-    text-transform: uppercase;
-}
-
-.zoro-stat-value {
-    font-size: 2rem;
+.stat-value {
     font-weight: bold;
-    color: var(--zoro-accent);
+    color: #ffffff;
 }
 
-.zoro-input-area {
-    width: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    border-radius: var(--border-radius);
-    padding: 1rem;
-}
-
-#zoro-input {
-    width: 100%;
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 2px solid var(--zoro-accent);
-    border-radius: var(--border-radius);
-    padding: 0.8rem 1rem;
-    font-family: inherit;
-    font-size: var(--font-size);
-    color: var(--zoro-text);
-    text-align: center;
-    outline: none;
-}
-
-#zoro-input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
-}
-
-#zoro-input:focus {
-    box-shadow: 0 0 10px var(--zoro-accent);
-}
-
-.zoro-exit-btn {
-    background-color: rgba(0, 0, 0, 0.7);
-    color: var(--zoro-text);
-    border: 2px solid var(--zoro-accent);
-    border-radius: var(--border-radius);
-    padding: 0.5rem 1.5rem;
-    font-family: inherit;
-    font-size: var(--font-size);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-top: 1rem;
-}
-
-.zoro-exit-btn:hover {
-    background-color: var(--zoro-accent);
-    color: var(--zoro-bg-color);
-}
-
-/* Zoro Mode UI Elements */
 .zoro-lives {
     position: absolute;
-    top: 1rem;
-    left: 1rem;
+    top: 20px;
+    left: 20px;
     display: flex;
-    gap: 0.5rem;
-    z-index: 1020;
+    gap: 10px;
+    z-index: 20;
+    pointer-events: none; /* Allow clicks to pass through */
 }
 
 .zoro-heart {
     font-size: 2rem;
-    filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
-    animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+    filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.7));
 }
 
 .zoro-power-ups {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
+    top: 20px;
+    right: 20px;
     display: flex;
     flex-direction: column;
-    gap: 0.7rem;
-    z-index: 1020;
+    gap: 10px;
+    z-index: 20;
+    pointer-events: auto; /* Ensure power-ups are clickable */
 }
 
 .power-up {
+    cursor: pointer; 
+    background-color: rgba(0, 0, 0, 0.6);
+    border: 1px solid #b19cd9;
+    padding: 5px 8px;
+    border-radius: 4px;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background-color: rgba(0, 0, 0, 0.7);
-    border-radius: var(--border-radius);
-    opacity: 0.5;
-    transition: all 0.3s ease;
+    gap: 5px;
+    pointer-events: auto;
 }
 
-.power-up.available {
-    opacity: 1;
-    border-left: 3px solid var(--zoro-accent);
-    animation: glow 2s infinite;
-}
-
-@keyframes glow {
-    0%, 100% { box-shadow: 0 0 5px var(--zoro-accent); }
-    50% { box-shadow: 0 0 15px var(--zoro-accent); }
-}
-
-.power-icon {
-    font-size: 1.5rem;
-}
-
-.power-name {
-    color: var(--zoro-text);
-    font-size: var(--font-size-small);
-}
-
-.zoro-combo {
+/* Update UI positioning for the new score position */
+.zoro-ui {
     position: absolute;
-    top: 4rem;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 20px;
+    left: 20px;
+    right: 230px; /* To avoid overlapping with the score display */
     display: flex;
     flex-direction: column;
     align-items: center;
-    z-index: 1020;
+    z-index: 20;
 }
 
-.combo-count {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: var(--zoro-accent);
+.zoro-input-area {
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 10px;
 }
 
-.combo-label {
-    font-size: var(--font-size-small);
-    color: var(--zoro-text);
+#zoro-input {
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    border: 2px solid #b19cd9;
+    padding: 12px;
+    font-size: 1.2rem;
+    border-radius: 4px;
+    outline: none;
 }
 
-.combo-update {
-    animation: pop 0.3s ease;
+#zoro-input:focus {
+    box-shadow: 0 0 15px rgba(177, 156, 217, 0.7);
 }
 
-@keyframes pop {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.3); }
-    100% { transform: scale(1); }
+.zoro-exit-btn {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #b19cd9;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
 }
 
-/* Sword Slash Effect */
+.zoro-exit-btn:hover {
+    background-color: #444;
+}
+
 .sword-slash {
     position: absolute;
-    width: 100px;
-    height: 100px;
-    background-image: url('../assets/slash-effect.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    pointer-events: none;
-    z-index: 1015;
-    transform: translate(-50%, -50%);
-    animation: slash 0.3s forwards;
+    width: 80px;
+    height: 80px;
+    background-image: linear-gradient(45deg, transparent 45%, #b19cd9 45%, #b19cd9 55%, transparent 55%);
+    transform: rotate(45deg);
+    z-index: 15;
+    opacity: 0;
+    animation: slash 0.5s ease-out;
 }
 
-@keyframes slash {
-    0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0; }
-    20% { opacity: 1; }
-    100% { transform: translate(-50%, -50%) scale(1.5) rotate(45deg); opacity: 0; }
+.flash {
+    animation: damageFlash 0.5s;
 }
 
-/* Ashura Clone Effect */
+.onigiri-flash {
+    animation: onigiriFlash 0.5s;
+}
+
+.haki-active {
+    filter: sepia(0.5) hue-rotate(220deg);
+}
+
 .ashura-clones {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    z-index: 25;
     pointer-events: none;
-    z-index: 1005;
 }
 
 .ashura-clone {
     position: absolute;
-    width: 100%;
-    height: 100%;
-    background-image: url('../assets/zoromodelogo.png');
-    background-size: 200px;
-    background-position: center;
+    width: 100px;
+    height: 100px;
+    background-image: url('../assets/ashura.png');
+    background-size: contain;
     background-repeat: no-repeat;
-    opacity: 0.3;
-    filter: hue-rotate(45deg) saturate(2);
-    animation: fadeOutClone 3s forwards;
+    opacity: 0;
+    animation: ashuraClone 3s ease-out;
 }
 
-@keyframes fadeOutClone {
-    0% { opacity: 0; }
-    20% { opacity: 0.3; }
-    80% { opacity: 0.3; }
-    100% { opacity: 0; }
+/* Animations */
+@keyframes slash {
+    0% {
+        transform: scale(0) rotate(45deg);
+        opacity: 0;
+    }
+    20% {
+        opacity: 1;
+    }
+    100% {
+        transform: scale(2) rotate(45deg);
+        opacity: 0;
+    }
 }
 
-/* Glitch Effect for Zoro Mode Trigger */
-.glitch-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.1);
-    pointer-events: none;
-    mix-blend-mode: overlay;
-    z-index: 1100;
-}
-
-.glitch-1 {
-    animation: glitch1 0.2s infinite;
-    background-image: linear-gradient(45deg, transparent 5%, var(--zoro-accent) 5%, var(--zoro-accent) 10%, transparent 10%);
-}
-
-.glitch-2 {
-    animation: glitch2 0.3s infinite;
-    background-image: linear-gradient(135deg, transparent 5%, var(--error-color) 5%, var(--error-color) 10%, transparent 10%);
-}
-
-.glitch-3 {
-    animation: glitch3 0.4s infinite;
-    background-image: linear-gradient(90deg, transparent 5%, var(--main-color) 5%, var(--main-color) 10%, transparent 10%);
-}
-
-@keyframes glitch1 {
-    0%, 100% { background-position: 0 0; }
-    50% { background-position: 100px 50px; }
-}
-
-@keyframes glitch2 {
-    0%, 100% { background-position: 50px 0; }
-    50% { background-position: -50px 100px; }
-}
-
-@keyframes glitch3 {
-    0%, 100% { background-position: 0 50px; }
-    50% { background-position: 100px -50px; }
-}
-
-/* Shake effects */
-.shake-1 {
-    animation: shake1 0.3s;
-}
-
-.shake-2 {
-    animation: shake2 0.5s;
-}
-
-.shake-3 {
-    animation: shake3 0.7s;
-}
-
-@keyframes shake1 {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    50% { transform: translateX(5px); }
-    75% { transform: translateX(-3px); }
-}
-
-@keyframes shake2 {
-    0%, 100% { transform: translateX(0) rotate(0deg); }
-    25% { transform: translateX(-7px) rotate(-1deg); }
-    50% { transform: translateX(7px) rotate(1deg); }
-    75% { transform: translateX(-5px) rotate(-0.5deg); }
-}
-
-@keyframes shake3 {
-    0%, 100% { transform: translateX(0) rotate(0deg); }
-    20% { transform: translateX(-10px) rotate(-2deg); }
-    40% { transform: translateX(10px) rotate(2deg); }
-    60% { transform: translateX(-7px) rotate(-1deg); }
-    80% { transform: translateX(7px) rotate(1deg); }
-}
-
-/* Power-up visual effects */
-.onigiri-flash {
-    animation: onigiriFlash 0.5s;
+@keyframes damageFlash {
+    0%, 100% {
+        background-color: transparent;
+    }
+    50% {
+        background-color: rgba(255, 0, 0, 0.3);
+    }
 }
 
 @keyframes onigiriFlash {
-    0%, 100% { filter: brightness(1); }
-    50% { filter: brightness(1.3) sepia(0.5); }
+    0%, 100% {
+        background-color: transparent;
+    }
+    50% {
+        background-color: rgba(177, 156, 217, 0.3);
+    }
 }
 
-.haki-active {
-    filter: contrast(1.2) sepia(0.2);
-    animation: hakiPulse 3s;
+@keyframes comboUpdate {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.5);
+    }
+    100% {
+        transform: scale(1);
+    }
 }
 
-@keyframes hakiPulse {
-    0% { filter: contrast(1) sepia(0); }
-    10% { filter: contrast(1.3) sepia(0.2); }
-    90% { filter: contrast(1.3) sepia(0.2); }
-    100% { filter: contrast(1) sepia(0); }
-}
-
-/* Difficulty Tier Transition Animation */
-.tier-transition {
-    animation: tierFlash 1.5s;
-}
-
-@keyframes tierFlash {
-    0% { filter: brightness(1); }
-    25% { filter: brightness(1.5); }
-    50% { filter: brightness(1); }
-    75% { filter: brightness(1.3); }
-    100% { filter: brightness(1); }
-}
-
-.zoro-difficulty-transition {
-    animation: tierAppear 3s forwards;
-}
-
-@keyframes tierAppear {
-    0% { opacity: 0; transform: translate(-50%, -70%) scale(0.8); }
-    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+@keyframes ashuraClone {
+    0% {
+        opacity: 0;
+        transform: translate(0, 0) scale(0.5);
+    }
+    20% {
+        opacity: 0.7;
+        transform: translate(var(--tx, 0), var(--ty, 0)) scale(1);
+    }
+    80% {
+        opacity: 0.7;
+        transform: translate(var(--tx, 0), var(--ty, 0)) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(var(--tx, 0), var(--ty, 0)) scale(0.5);
+    }
 }
 
 /* Media queries for responsive design */
@@ -1012,4 +882,104 @@ main {
     .power-icon {
         font-size: 1.2rem;
     }
+}
+
+/* Word mode dropdown styling */
+.word-mode-container {
+    position: relative;
+    display: inline-block;
+}
+
+.word-count-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #1c1c1c;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+    min-width: 100%;
+    margin-top: 5px;
+}
+
+.word-mode-container:hover .word-count-dropdown,
+.word-count-dropdown.show {
+    display: block;
+}
+
+.word-count-btn {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    background-color: transparent;
+    color: #b5b5b5;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    font-family: 'Roboto Mono', monospace;
+}
+
+.word-count-btn:hover {
+    background-color: #303030;
+    color: #ffffff;
+}
+
+.word-count-btn.active {
+    background-color: #404040;
+    color: #ffffff;
+}
+
+/* Update filter button group to handle more buttons */
+.filter-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.filter-btn {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+}
+
+/* Zoro Mode Score Display */
+.zoro-score-display {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 15px 20px;
+    border-radius: 10px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 18px;
+    z-index: 1000;
+    border: 2px solid #3a3a3a;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    text-align: right;
+    min-width: 180px;
+}
+
+.zoro-score-display .score-line {
+    margin: 5px 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.zoro-score-display .stat-value {
+    font-weight: bold;
+    color: #b19cd9;
+    margin-left: 20px;
+}
+
+.zoro-score-display .level-indicator {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #c176ff;
+    display: flex;
+    justify-content: center;
+    text-shadow: 0 0 5px rgba(193, 118, 255, 0.7);
 }

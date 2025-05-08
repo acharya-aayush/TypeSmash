@@ -1,623 +1,480 @@
-// Stats Module - Handles history tracking and visualization
+/**
+ * Stats.js - Manages typing statistics and history
+ */
 
-// Global variables for stats
-const statsState = {
-    history: [],
-    zoroHistory: [],
-    currentFilter: 'all', // 'all', 'timed', 'word', 'zoro'
-    currentView: 'bar'    // 'bar', 'line'
+// Stats configuration
+const statsConfig = {
+    maxHistoryEntries: 100,
+    chartColors: {
+        bar: {
+            timed: 'rgba(177, 156, 217, 0.8)', // Lavender color
+            word20: 'rgba(122, 172, 122, 0.8)', // Green for 20w
+            word50: 'rgba(142, 192, 142, 0.8)', // Slightly lighter green for 50w
+            word100: 'rgba(162, 212, 162, 0.8)', // Even lighter green for 100w
+            word200: 'rgba(182, 232, 182, 0.8)', // Very light green for 200w
+            word500: 'rgba(202, 252, 202, 0.8)', // Almost white-green for 500w
+            word1000: 'rgba(222, 255, 222, 0.8)', // Nearly white green for 1000w
+            zoro: 'rgba(168, 139, 250, 0.8)' // Purple for Zoro mode
+        },
+        line: {
+            timed: 'rgb(177, 156, 217)', // Solid lavender
+            word20: 'rgb(122, 172, 122)', // Solid green for 20w
+            word50: 'rgb(142, 192, 142)', // Slightly lighter solid green for 50w
+            word100: 'rgb(162, 212, 162)', // Even lighter solid green for 100w
+            word200: 'rgb(182, 232, 182)', // Very light solid green for 200w
+            word500: 'rgb(202, 252, 202)', // Almost white-green solid for 500w
+            word1000: 'rgb(222, 255, 222)', // Nearly white green solid for 1000w
+            zoro: 'rgb(168, 139, 250)' // Solid purple for Zoro mode
+        }
+    }
 };
 
-// DOM Elements
-const statsElements = {
-    historyTable: document.getElementById('history-table'),
-    wpmGraph: document.getElementById('wpm-graph'),
-    statsSection: document.getElementById('stats-section'),
-    filterButtons: {
-        all: document.getElementById('filter-all'),
-        timed: document.getElementById('filter-timed'),
-        word: document.getElementById('filter-word'),
-        zoro: document.getElementById('filter-zoro')
-    },
-    viewButtons: {
-        bar: document.getElementById('view-bar'),
-        line: document.getElementById('view-line')
-    },
-    clearHistoryBtn: document.getElementById('clear-history'),
-    closeStatsBtn: document.getElementById('close-stats'),
-    statsToggleBtn: document.getElementById('stats-toggle')
+// Local storage keys
+const HISTORY_KEY = 'typingHistory';
+const SETTINGS_KEY = 'typingSettings';
+
+// Stats data
+let typingHistory = [];
+let typingSettings = {
+    soundEnabled: true,
+    theme: 'dark',
+    keyboardLayout: 'qwerty'
 };
 
-/**
- * Load stats history from localStorage
- */
-function loadHistory() {
-    // Load regular typing history
-    const savedHistory = localStorage.getItem('typingHistory');
-    if (savedHistory) {
-        try {
-            statsState.history = JSON.parse(savedHistory);
-        } catch (e) {
-            console.error('Error parsing history:', e);
-            statsState.history = [];
-        }
-    }
-    
-    // Load Zoro mode history
-    const savedZoroHistory = localStorage.getItem('zoroHistory');
-    if (savedZoroHistory) {
-        try {
-            statsState.zoroHistory = JSON.parse(savedZoroHistory);
-        } catch (e) {
-            console.error('Error parsing Zoro history:', e);
-            statsState.zoroHistory = [];
-        }
-    }
-}
-
-/**
- * Save a new test result to history
- * @param {number} wpm - Words per minute
- * @param {number} accuracy - Accuracy percentage
- * @param {string} mode - Test mode ('timed' or 'word')
- * @param {number} characters - Correct characters typed
- * @param {number} errors - Error count
- * @param {string} time - Time taken
- */
-function saveToHistory(wpm, accuracy, mode, characters, errors, time) {
-    const newEntry = {
-        wpm,
-        accuracy,
-        mode,
-        characters,
-        errors,
-        time,
-        timestamp: Date.now()
-    };
-    
-    // Add to beginning of array to show newest first
-    statsState.history.unshift(newEntry);
-    
-    // Limit history to 100 entries
-    if (statsState.history.length > 100) {
-        statsState.history = statsState.history.slice(0, 100);
-    }
-    
-    // Save to localStorage
-    localStorage.setItem('typingHistory', JSON.stringify(statsState.history));
-    
-    // Update UI if stats section is visible
-    if (!statsElements.statsSection.classList.contains('hidden')) {
-        renderHistoryTable();
-        renderWPMGraph();
-    }
-}
-
-/**
- * Save a Zoro game result to history
- * @param {number} score - Total score
- * @param {number} level - Level reached
- * @param {number} maxCombo - Maximum combo achieved
- * @param {number} duration - Game duration in seconds
- */
-function saveZoroGameToHistory(score, level, maxCombo, duration) {
-    console.log("saveZoroGameToHistory called with:", { score, level, maxCombo, duration });
-    
-    const newEntry = {
-        score,
-        level,
-        maxCombo,
-        duration: `${duration}s`,
-        timestamp: Date.now()
-    };
-    
-    console.log("Creating new Zoro history entry:", newEntry);
-    
-    // Add to beginning of array to show newest first
-    statsState.zoroHistory.unshift(newEntry);
-    console.log("Current zoroHistory length:", statsState.zoroHistory.length);
-    
-    // Limit history to 100 entries
-    if (statsState.zoroHistory.length > 100) {
-        statsState.zoroHistory = statsState.zoroHistory.slice(0, 100);
-    }
-    
-    // Save to localStorage
-    try {
-        const jsonData = JSON.stringify(statsState.zoroHistory);
-        localStorage.setItem('zoroHistory', jsonData);
-        console.log("Successfully saved zoroHistory to localStorage", jsonData.substring(0, 100) + "...");
-    } catch (error) {
-        console.error("Error saving zoroHistory to localStorage:", error);
-    }
-    
-    // Update UI if stats section is visible
-    if (statsElements.statsSection && !statsElements.statsSection.classList.contains('hidden')) {
-        console.log("Stats section is visible, updating UI");
-        renderHistoryTable();
-        renderWPMGraph();
-    }
-}
-
-/**
- * Render history table
- */
-function renderHistoryTable() {
-    // Clear existing table
-    const tbody = statsElements.historyTable.querySelector('tbody');
-    if (!tbody) return;
-    
-    tbody.innerHTML = '';
-    
-    // Filter data based on current filter
-    const filteredData = filterHistory();
-    
-    // Create rows for each entry
-    filteredData.slice(0, 10).forEach((entry) => {
-        const row = document.createElement('tr');
-        
-        if (entry.mode) {
-            // Regular typing test entry
-            
-            // Mode cell
-            const modeCell = document.createElement('td');
-            modeCell.textContent = entry.mode === 'timed' ? '15s' : '20w';
-            row.appendChild(modeCell);
-            
-            // WPM cell
-            const wpmCell = document.createElement('td');
-            wpmCell.textContent = entry.wpm;
-            row.appendChild(wpmCell);
-            
-            // Accuracy cell
-            const accuracyCell = document.createElement('td');
-            accuracyCell.textContent = `${entry.accuracy}%`;
-            row.appendChild(accuracyCell);
-            
-            // Characters cell
-            const charsCell = document.createElement('td');
-            charsCell.textContent = entry.characters;
-            row.appendChild(charsCell);
-            
-            // Errors cell
-            const errorsCell = document.createElement('td');
-            errorsCell.textContent = entry.errors;
-            row.appendChild(errorsCell);
-            
-            // Time cell
-            const timeCell = document.createElement('td');
-            timeCell.textContent = entry.time;
-            row.appendChild(timeCell);
-            
-            // Date cell
-            const dateCell = document.createElement('td');
-            dateCell.textContent = formatTimestamp(entry.timestamp);
-            row.appendChild(dateCell);
-        } else {
-            // Zoro mode entry
-            
-            // Mode cell
-            const modeCell = document.createElement('td');
-            modeCell.textContent = 'Zoro';
-            modeCell.classList.add('zoro-mode-cell');
-            row.appendChild(modeCell);
-            
-            // Score cell (in WPM column)
-            const scoreCell = document.createElement('td');
-            scoreCell.textContent = entry.score;
-            row.appendChild(scoreCell);
-            
-            // Level cell (in Accuracy column)
-            const levelCell = document.createElement('td');
-            levelCell.textContent = `Lv ${entry.level}`;
-            row.appendChild(levelCell);
-            
-            // Max Combo cell (in Characters column)
-            const comboCell = document.createElement('td');
-            comboCell.textContent = entry.maxCombo;
-            row.appendChild(comboCell);
-            
-            // Empty errors cell
-            const emptyCell = document.createElement('td');
-            emptyCell.textContent = '-';
-            row.appendChild(emptyCell);
-            
-            // Duration cell
-            const durationCell = document.createElement('td');
-            durationCell.textContent = entry.duration;
-            row.appendChild(durationCell);
-            
-            // Date cell
-            const dateCell = document.createElement('td');
-            dateCell.textContent = formatTimestamp(entry.timestamp);
-            row.appendChild(dateCell);
-        }
-        
-        tbody.appendChild(row);
-    });
-    
-    // Show message if no data
-    if (filteredData.length === 0) {
-        const row = document.createElement('tr');
-        const cell = document.createElement('td');
-        cell.colSpan = 7;
-        cell.textContent = 'No history available';
-        cell.style.textAlign = 'center';
-        row.appendChild(cell);
-        tbody.appendChild(row);
-    }
-}
-
-/**
- * Filter history based on mode
- * @returns {Array} Filtered data
- */
-function filterHistory() {
-    // Combine regular and zoro history based on filter
-    let filteredData = [];
-    
-    if (statsState.currentFilter === 'all') {
-        // Combine and sort all data by timestamp
-        filteredData = [...statsState.history, ...statsState.zoroHistory];
-        filteredData.sort((a, b) => b.timestamp - a.timestamp);
-    } else if (statsState.currentFilter === 'zoro') {
-        // Only zoro data
-        filteredData = [...statsState.zoroHistory];
-    } else {
-        // Filter regular typing history by mode
-        filteredData = statsState.history.filter(entry => entry.mode === statsState.currentFilter);
-    }
-    
-    return filteredData;
-}
-
-/**
- * Render WPM graph or Zoro scores using canvas
- */
-function renderWPMGraph() {
-    const canvas = statsElements.wpmGraph;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    
-    // Set canvas dimensions
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Filter data
-    const filteredData = filterHistory().slice(0, 10).reverse();
-    
-    if (filteredData.length === 0) {
-        // Draw "No data" message
-        ctx.fillStyle = '#646669';
-        ctx.font = '14px "Roboto Mono", monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('No data available', canvas.width / 2, canvas.height / 2);
-        return;
-    }
-    
-    // Determine what type of data to show
-    const isZoroData = statsState.currentFilter === 'zoro';
-    
-    // Find max value for scaling
-    let maxValue;
-    if (isZoroData) {
-        maxValue = Math.max(...filteredData.map(entry => entry.score));
-    } else {
-        maxValue = Math.max(...filteredData.map(entry => entry.wpm));
-    }
-    
-    const scaleFactor = (canvas.height - 60) / (maxValue || 100);
-    
-    // Define colors
-    const barColor = '#b19cd9'; // Changed from #e2b714 to lavender
-    const zoroColor = '#a88bfa'; // Lavender color for Zoro mode
-    const lineColor = '#7aac7a';
-    const textColor = '#646669';
-    const gridColor = '#323437';
-    
-    // Draw grid lines
-    const gridCount = 5;
-    ctx.strokeStyle = gridColor;
-    ctx.lineWidth = 1;
-    
-    for (let i = 0; i <= gridCount; i++) {
-        const y = canvas.height - 30 - (i * (canvas.height - 60) / gridCount);
-        ctx.beginPath();
-        ctx.moveTo(30, y);
-        ctx.lineTo(canvas.width - 20, y);
-        ctx.stroke();
-        
-        // Draw value labels
-        const value = Math.round(i * (maxValue / gridCount));
-        ctx.fillStyle = textColor;
-        ctx.font = '10px "Roboto Mono", monospace';
-        ctx.textAlign = 'right';
-        ctx.fillText(value, 25, y + 3);
-    }
-    
-    // Calculate bar width and spacing
-    const barWidth = Math.min(50, (canvas.width - 50) / filteredData.length - 10);
-    const spacing = (canvas.width - 50 - (barWidth * filteredData.length)) / (filteredData.length + 1);
-    
-    if (statsState.currentView === 'bar') {
-        // Draw bars
-        filteredData.forEach((entry, index) => {
-            const x = 40 + spacing + index * (barWidth + spacing);
-            
-            // Get value based on data type
-            const value = isZoroData ? entry.score : entry.wpm;
-            const barHeight = value * scaleFactor;
-            const y = canvas.height - 30 - barHeight;
-            
-            // Draw bar with appropriate color
-            ctx.fillStyle = isZoroData ? zoroColor : barColor;
-            ctx.fillRect(x, y, barWidth, barHeight);
-            
-            // Draw index number
-            ctx.fillStyle = textColor;
-            ctx.font = '10px "Roboto Mono", monospace';
-            ctx.textAlign = 'center';
-            ctx.fillText(index + 1, x + barWidth / 2, canvas.height - 15);
-        });
-    } else {
-        // Draw line chart
-        ctx.strokeStyle = isZoroData ? zoroColor : lineColor;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        
-        filteredData.forEach((entry, index) => {
-            const x = 40 + spacing + index * (barWidth + spacing) + barWidth / 2;
-            
-            // Get value based on data type
-            const value = isZoroData ? entry.score : entry.wpm;
-            const y = canvas.height - 30 - (value * scaleFactor);
-            
-            if (index === 0) {
-                ctx.moveTo(x, y);
-            } else {
-                ctx.lineTo(x, y);
-            }
-            
-            // Draw index number
-            ctx.fillStyle = textColor;
-            ctx.font = '10px "Roboto Mono", monospace';
-            ctx.textAlign = 'center';
-            ctx.fillText(index + 1, x, canvas.height - 15);
-        });
-        
-        ctx.stroke();
-        
-        // Draw points
-        filteredData.forEach((entry, index) => {
-            const x = 40 + spacing + index * (barWidth + spacing) + barWidth / 2;
-            
-            // Get value based on data type
-            const value = isZoroData ? entry.score : entry.wpm;
-            const y = canvas.height - 30 - (value * scaleFactor);
-            
-            ctx.fillStyle = isZoroData ? zoroColor : lineColor;
-            ctx.beginPath();
-            ctx.arc(x, y, 4, 0, Math.PI * 2);
-            ctx.fill();
-        });
-    }
-    
-    // Draw labels
-    ctx.fillStyle = textColor;
-    ctx.font = '12px "Roboto Mono", monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('Game Number', canvas.width / 2, canvas.height - 5);
-    
-    ctx.save();
-    ctx.translate(15, canvas.height / 2);
-    ctx.rotate(-Math.PI / 2);
-    ctx.textAlign = 'center';
-    ctx.fillText(isZoroData ? 'Score' : 'WPM', 0, 0);
-    ctx.restore();
-}
-
-/**
- * Clear history with confirmation
- */
-function clearHistory() {
-    const confirmed = confirm('Are you sure you want to clear your typing history?');
-    if (confirmed) {
-        statsState.history = [];
-        statsState.zoroHistory = [];
-        
-        localStorage.removeItem('typingHistory');
-        localStorage.removeItem('zoroHistory');
-        
-        renderHistoryTable();
-        renderWPMGraph();
-    }
-}
-
-/**
- * Toggle stats section visibility
- */
-function toggleStats() {
-    const isHidden = statsElements.statsSection.classList.contains('hidden');
-    
-    if (isHidden) {
-        // Show stats
-        statsElements.statsSection.classList.remove('hidden');
-        
-        // Load history and render table/graph
-        loadHistory();
-        renderHistoryTable();
-        renderWPMGraph();
-    } else {
-        // Hide stats
-        statsElements.statsSection.classList.add('hidden');
-    }
-}
-
-/**
- * Set filter for history display
- * @param {string} filter - Filter to apply ('all', 'timed', 'word', or 'zoro')
- */
-function setFilter(filter) {
-    statsState.currentFilter = filter;
-    
-    // Update active button
-    for (const key in statsElements.filterButtons) {
-        if (statsElements.filterButtons[key]) {
-            statsElements.filterButtons[key].classList.toggle('active', key === filter);
-        }
-    }
-    
-    // Re-render table and graph
-    renderHistoryTable();
-    renderWPMGraph();
-}
-
-/**
- * Set view type for graph
- * @param {string} view - View type ('bar' or 'line')
- */
-function setView(view) {
-    statsState.currentView = view;
-    
-    // Update active button
-    for (const key in statsElements.viewButtons) {
-        if (statsElements.viewButtons[key]) {
-            statsElements.viewButtons[key].classList.toggle('active', key === view);
-        }
-    }
-    
-    // Re-render graph
-    renderWPMGraph();
-}
+// Chart instance
+let wpmChart = null;
 
 /**
  * Initialize stats module
  */
-function initStats() {
-    console.log("Initializing stats module...");
-    
-    // Make sure we have all the DOM elements
-    statsElements.historyTable = document.getElementById('history-table');
-    statsElements.wpmGraph = document.getElementById('wpm-graph');
-    statsElements.statsSection = document.getElementById('stats-section');
-    statsElements.clearHistoryBtn = document.getElementById('clear-history');
-    statsElements.closeStatsBtn = document.getElementById('close-stats');
-    statsElements.statsToggleBtn = document.getElementById('stats-toggle');
-    
-    // Reinitialize filter buttons
-    statsElements.filterButtons = {
-        all: document.getElementById('filter-all'),
-        timed: document.getElementById('filter-timed'),
-        word: document.getElementById('filter-word'),
-        zoro: document.getElementById('filter-zoro')
-    };
-    
-    statsElements.viewButtons = {
-        bar: document.getElementById('view-bar'),
-        line: document.getElementById('view-line')
-    };
-    
-    // Add Zoro filter button if it doesn't exist
-    if (!statsElements.filterButtons.zoro) {
-        console.log("Creating Zoro filter button...");
-        const filtersContainer = document.querySelector('.filter-group');
-        if (filtersContainer) {
-            const zoroBtn = document.createElement('button');
-            zoroBtn.id = 'filter-zoro';
-            zoroBtn.className = 'filter-btn';
-            zoroBtn.textContent = 'Zoro';
-            filtersContainer.appendChild(zoroBtn);
-            
-            // Add to elements
-            statsElements.filterButtons.zoro = zoroBtn;
-        }
-    }
-    
-    // Always reattach event listeners to ensure they work
-    if (statsElements.filterButtons.zoro) {
-        console.log("Attaching click handler to Zoro button");
-        statsElements.filterButtons.zoro.addEventListener('click', function() {
-            console.log("Zoro filter clicked");
-            setFilter('zoro');
-        });
-    } else {
-        console.error("Zoro filter button not found or created");
-    }
-    
-    // Initialize events
-    if (statsElements.statsToggleBtn) {
-        statsElements.statsToggleBtn.addEventListener('click', toggleStats);
-    }
-    
-    if (statsElements.closeStatsBtn) {
-        statsElements.closeStatsBtn.addEventListener('click', () => {
-            statsElements.statsSection.classList.add('hidden');
-        });
-    }
-    
-    if (statsElements.clearHistoryBtn) {
-        statsElements.clearHistoryBtn.addEventListener('click', clearHistory);
-    }
-    
-    // Filter button events
-    if (statsElements.filterButtons.all) {
-        statsElements.filterButtons.all.addEventListener('click', () => {
-            setFilter('all');
-        });
-    }
-    
-    if (statsElements.filterButtons.timed) {
-        statsElements.filterButtons.timed.addEventListener('click', () => {
-            setFilter('timed');
-        });
-    }
-    
-    if (statsElements.filterButtons.word) {
-        statsElements.filterButtons.word.addEventListener('click', () => {
-            setFilter('word');
-        });
-    }
-    
-    // View button events
-    if (statsElements.viewButtons.bar) {
-        statsElements.viewButtons.bar.addEventListener('click', () => {
-            setView('bar');
-        });
-    }
-    
-    if (statsElements.viewButtons.line) {
-        statsElements.viewButtons.line.addEventListener('click', () => {
-            setView('line');
-        });
-    }
-    
-    // Load history
+function init() {
+    // Load history from local storage
     loadHistory();
     
-    // Handle window resize for responsive graph
-    window.addEventListener('resize', () => {
-        if (!statsElements.statsSection.classList.contains('hidden')) {
-            renderWPMGraph();
+    // Load settings from local storage
+    loadSettings();
+    
+    // Initialize chart
+    initChart('bar');
+}
+
+/**
+ * Load typing history from local storage
+ */
+function loadHistory() {
+    try {
+        const savedHistory = localStorage.getItem(HISTORY_KEY);
+        if (savedHistory) {
+            typingHistory = JSON.parse(savedHistory);
+        }
+    } catch (error) {
+        console.error('Failed to load typing history:', error);
+        typingHistory = [];
+    }
+}
+
+/**
+ * Save typing history to local storage
+ */
+function saveHistory() {
+    try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(typingHistory));
+    } catch (error) {
+        console.error('Failed to save typing history:', error);
+    }
+}
+
+/**
+ * Load user settings from local storage
+ */
+function loadSettings() {
+    try {
+        const savedSettings = localStorage.getItem(SETTINGS_KEY);
+        if (savedSettings) {
+            typingSettings = { ...typingSettings, ...JSON.parse(savedSettings) };
+        }
+    } catch (error) {
+        console.error('Failed to load settings:', error);
+    }
+}
+
+/**
+ * Save user settings to local storage
+ */
+function saveSettings() {
+    try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(typingSettings));
+    } catch (error) {
+        console.error('Failed to save settings:', error);
+    }
+}
+
+/**
+ * Save a test result to history
+ * @param {number} wpm - Words per minute
+ * @param {number} accuracy - Accuracy percentage
+ * @param {string} mode - Test mode ('timed' or 'word-XX' or 'zoro')
+ * @param {number} chars - Characters typed
+ * @param {number} errors - Error count
+ * @param {string} time - Time display string
+ * @param {number} actualWordCount - Actual number of words (for word mode)
+ */
+function saveToHistory(wpm, accuracy, mode, chars, errors, time, actualWordCount = null) {
+    // Create new history entry
+    const newEntry = {
+        wpm,
+        accuracy,
+        mode,
+        chars,
+        errors,
+        time,
+        timestamp: Date.now(),
+        actualWordCount: actualWordCount  // Store actual word count if provided
+    };
+    
+    // Add to beginning of array
+    typingHistory.unshift(newEntry);
+    
+    // Limit history size
+    if (typingHistory.length > statsConfig.maxHistoryEntries) {
+        typingHistory = typingHistory.slice(0, statsConfig.maxHistoryEntries);
+    }
+    
+    // Save to local storage
+    saveHistory();
+    
+    // Update stats display
+    updateStats();
+}
+
+/**
+ * Clear typing history (with confirmation)
+ */
+function clearHistory() {
+    // Reset history
+    typingHistory = [];
+    
+    // Save empty history to local storage
+    saveHistory();
+    
+    // Update stats display
+    updateStats();
+}
+
+/**
+ * Format a mode identifier for display
+ * @param {string} mode - Mode identifier ('timed', 'word-XX', or 'zoro')
+ * @param {number} actualWordCount - Actual number of words (optional)
+ * @returns {string} Formatted mode name
+ */
+function formatMode(mode, actualWordCount = null) {
+    if (mode === 'timed') return '15s';
+    if (mode === 'zoro') return 'Zoro';
+    
+    // Handle word modes like 'word-20', 'word-50', etc.
+    if (mode.startsWith('word-')) {
+        const wordCount = mode.split('-')[1];
+        // Only show actual count if it differs from nominal count
+        if (actualWordCount && actualWordCount !== parseInt(wordCount, 10)) {
+            return `${wordCount}w (${actualWordCount})`;
+        }
+        return `${wordCount}w`;
+    }
+    
+    return mode; // Fallback
+}
+
+/**
+ * Initialize the WPM chart
+ * @param {string} type - Chart type ('bar' or 'line')
+ */
+function initChart(type = 'bar') {
+    const ctx = document.getElementById('wpm-graph').getContext('2d');
+    
+    if (wpmChart) {
+        wpmChart.destroy();
+    }
+    
+    // Default to showing the most recent 10 entries
+    const chartData = prepareChartData(typingHistory.slice(0, 10), type);
+    
+    wpmChart = new Chart(ctx, {
+        type: type,
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'WPM'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Test Number'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const entry = typingHistory[context.dataIndex];
+                            return [
+                                `WPM: ${entry.wpm}`,
+                                `Accuracy: ${entry.accuracy}%`,
+                                `Mode: ${formatMode(entry.mode)}`
+                            ];
+                        }
+                    }
+                }
+            }
         }
     });
 }
 
-// Export stats module as global
+/**
+ * Prepare data for the WPM chart
+ * @param {Array} entries - History entries to chart
+ * @param {string} chartType - Chart type ('bar' or 'line')
+ * @returns {Object} Chart data configuration
+ */
+function prepareChartData(entries, chartType = 'bar') {
+    const labels = entries.map((_, index) => `Test ${entries.length - index}`).reverse();
+    const datasets = [];
+    
+    // Group entries by mode
+    const modeGroups = {};
+    
+    entries.forEach((entry, index) => {
+        // Determine the mode category
+        let modeCategory = 'timed';
+        if (entry.mode === 'zoro') {
+            modeCategory = 'zoro';
+        } else if (entry.mode.startsWith('word-')) {
+            const wordCount = entry.mode.split('-')[1];
+            modeCategory = `word${wordCount}`;
+        }
+        
+        // Initialize the mode group if it doesn't exist
+        if (!modeGroups[modeCategory]) {
+            modeGroups[modeCategory] = {
+                label: formatMode(entry.mode),
+                data: Array(entries.length).fill(null),
+                backgroundColor: statsConfig.chartColors[chartType][modeCategory] || 'rgba(150, 150, 150, 0.8)',
+                borderColor: statsConfig.chartColors.line[modeCategory] || 'rgb(150, 150, 150)',
+                borderWidth: chartType === 'line' ? 2 : 1,
+                tension: chartType === 'line' ? 0.3 : 0, // Add tension for smooth lines
+                fill: chartType !== 'line', // Only fill for bar charts
+                pointRadius: chartType === 'line' ? 4 : 0, // Add points for line charts
+                pointHoverRadius: chartType === 'line' ? 6 : 0
+            };
+        }
+        
+        // Add the WPM value to the appropriate position
+        modeGroups[modeCategory].data[entries.length - 1 - index] = entry.wpm;
+    });
+    
+    // Convert mode groups to datasets
+    for (const key in modeGroups) {
+        datasets.push(modeGroups[key]);
+    }
+    
+    return { labels, datasets };
+}
+
+/**
+ * Update the stats display
+ * @param {string} filter - Filter type ('all', 'timed', 'word-XX', 'zoro')
+ * @param {string} viewType - Chart view type ('bar', 'line')
+ */
+function updateStats(filter = 'all', viewType = null) {
+    // Filter history based on filter type
+    let filteredHistory = typingHistory;
+    
+    if (filter !== 'all') {
+        filteredHistory = typingHistory.filter(entry => entry.mode === filter);
+    }
+    
+    // Get chart type based on active view button
+    if (!viewType) {
+        const activeViewBtn = document.querySelector('.view-btn.active');
+        viewType = activeViewBtn ? activeViewBtn.id.replace('view-', '') : 'bar';
+    }
+    
+    // Update the chart
+    if (filteredHistory.length > 0) {
+        const chartData = prepareChartData(filteredHistory.slice(0, 10), viewType);
+        updateChart(chartData, viewType);
+    } else {
+        // No data to display, show empty chart
+        updateChart({ labels: [], datasets: [] }, viewType);
+    }
+    
+    // Update the history table
+    updateHistoryTable(filteredHistory);
+}
+
+/**
+ * Update the WPM chart
+ * @param {Object} chartData - Chart data configuration
+ * @param {string} type - Chart type ('bar' or 'line')
+ */
+function updateChart(chartData, type = 'bar') {
+    if (wpmChart) {
+        wpmChart.destroy();
+    }
+    
+    const ctx = document.getElementById('wpm-graph').getContext('2d');
+    
+    wpmChart = new Chart(ctx, {
+        type: type,
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'WPM'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Test Number'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label || '';
+                            const value = context.parsed.y;
+                            return `${label}: ${value} WPM`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Update the history table
+ * @param {Array} entries - History entries to display
+ */
+function updateHistoryTable(entries) {
+    const tableBody = document.querySelector('#history-table tbody');
+    tableBody.innerHTML = '';
+    
+    if (entries.length === 0) {
+        // Show a message if there's no history
+        const emptyRow = document.createElement('tr');
+        const emptyCell = document.createElement('td');
+        emptyCell.setAttribute('colspan', '7');
+        emptyCell.textContent = 'No typing history available.';
+        emptyCell.style.textAlign = 'center';
+        emptyCell.style.padding = '2rem 0';
+        emptyRow.appendChild(emptyCell);
+        tableBody.appendChild(emptyRow);
+        return;
+    }
+    
+    // Add rows for each history entry
+    entries.forEach(entry => {
+        const row = document.createElement('tr');
+        
+        // Mode column with class for styling
+        const modeCell = document.createElement('td');
+        modeCell.textContent = formatMode(entry.mode, entry.actualWordCount);
+        
+        // Add actual word count as tooltip if available and different from nominal
+        if (entry.actualWordCount && entry.mode.startsWith('word-')) {
+            const nominalCount = parseInt(entry.mode.split('-')[1], 10);
+            if (entry.actualWordCount !== nominalCount) {
+                modeCell.setAttribute('title', `Actual: ${entry.actualWordCount} words`);
+            }
+        }
+        
+        if (entry.mode === 'zoro') {
+            modeCell.classList.add('zoro-mode-cell');
+        }
+        row.appendChild(modeCell);
+        
+        // WPM column
+        const wpmCell = document.createElement('td');
+        wpmCell.textContent = entry.wpm;
+        row.appendChild(wpmCell);
+        
+        // Accuracy column
+        const accuracyCell = document.createElement('td');
+        accuracyCell.textContent = `${entry.accuracy}%`;
+        row.appendChild(accuracyCell);
+        
+        // Characters column
+        const charsCell = document.createElement('td');
+        charsCell.textContent = entry.chars;
+        row.appendChild(charsCell);
+        
+        // Errors column
+        const errorsCell = document.createElement('td');
+        errorsCell.textContent = entry.errors;
+        row.appendChild(errorsCell);
+        
+        // Time column
+        const timeCell = document.createElement('td');
+        timeCell.textContent = entry.time;
+        row.appendChild(timeCell);
+        
+        // Date column
+        const dateCell = document.createElement('td');
+        dateCell.textContent = formatTimestamp(entry.timestamp);
+        row.appendChild(dateCell);
+        
+        // Add the row to the table
+        tableBody.appendChild(row);
+    });
+}
+
+/**
+ * Format a timestamp into a readable date string
+ * @param {number} timestamp - Timestamp in milliseconds
+ * @returns {string} Formatted date string
+ */
+function formatTimestamp(timestamp) {
+    if (window.utilsModule && window.utilsModule.formatTimestamp) {
+        return window.utilsModule.formatTimestamp(timestamp);
+    }
+    
+    // Fallback if utils module is not available
+    const date = new Date(timestamp);
+    return date.toLocaleString();
+}
+
+// Export the stats module
 window.statsModule = {
-    init: initStats,
+    init,
     saveToHistory,
-    saveZoroGameToHistory,
-    toggleStats,
-    loadHistory,
-    updateStats: function(filter, view) {
-        if (filter) setFilter(filter);
-        if (view) setView(view);
-        renderHistoryTable();
-        renderWPMGraph();
-    },
-    clearHistory
+    updateStats,
+    clearHistory,
+    getSettings: () => typingSettings,
+    updateSettings: (newSettings) => {
+        typingSettings = { ...typingSettings, ...newSettings };
+        saveSettings();
+    }
 };

@@ -14,8 +14,9 @@ TypeSmash is a no-nonsense typing test that lets you track your speed, accuracy,
 
 - **Clean, distraction-free UI** - Focus on typing, not flashy animations
 - **Multiple test modes**:
-  - Time-based: 15 second sprint (previously had 30s and 60s modes too)
-  - Word-based: 20 word challenge (used to have 10, 50, 100 word options)
+  - Time-based: 15 second sprint
+  - Word-based: Multiple word counts (20, 50, 100, 200, 500, and 1000 words)
+  - Meaningful passages for word mode tests (not just random words)
 - **Detailed statistics** - Track WPM, accuracy, error percentage
 - **History tracking** - See your progress over time with fancy graphs
 - **Dark mode by default** - Because I care about your eyes
@@ -39,12 +40,23 @@ TypeSmash keeps track of your last 100 typing tests, showing you:
 
 View your history as bar graphs or line charts to track your improvement over time.
 
+## 📝 Word Mode
+
+The word mode has been expanded to include various word counts:
+- **20 words**: Quick test for a speed check
+- **50 words**: Short paragraphs to build rhythm
+- **100 words**: Medium-length passages
+- **200 words**: Extended passages to test endurance
+- **500 words**: Long-form typing challenge
+- **1000 words**: Marathon typing session
+
+All word modes feature meaningful text passages instead of random words, making the typing experience more engaging and realistic.
+
 ## ⌛ Scrapped Features
 
 Several features were developed but ultimately removed due to scope/time constraints:
 
 - **Extended Time Tests** - 30 and 60 second modes were fully working but removed to focus on core experience
-- **More Word Counts** - 10, 50, and 100 word tests were cut to simplify options
 - **Code Mode** - A specialized mode for practicing typing code in Python and JavaScript. Removed due to headaches with syntax highlighting and tab/indentation handling
 - **Custom Text Mode** - Allowing users to paste their own text was abandoned due to formatting issues
 - **Account System** - Login functionality to sync stats across devices (maybe someday)
@@ -78,6 +90,23 @@ A completely unplanned feature added in the final days of development. Words fal
 
 This mode was totally thrown together at the end but somehow became one of the most fun parts of the project. Funny how that works.
 
+### Recent Fixes (v0.8.0):
+- Fixed audio issues with the zorobattletheme sound not playing
+- Adjusted background music volume to 20% so it doesn't overpower other sound effects
+- Implemented proper audio gain management for all sound effects
+
+### Upcoming Improvements (v0.8.1):
+- Power-up cooldown system to prevent spamming
+- Better balancing for speed and difficulty in higher levels
+- Dedicated stats section for Zoro mode with metrics for:
+  - Highest combo achieved
+  - Total score
+  - Words destroyed count
+  - Power-ups used
+  - Highest level reached
+- Visual indicators for power-up cooldowns
+- Proper separation of Zoro mode stats from regular typing test data
+
 ## 🎮 Future Plans
 - Actually implement mobile support
 - Add back some of the scrapped features in a cleaner way
@@ -108,3 +137,4 @@ Do whatever you want with this code. Credit would be nice but I can't stop you a
 ---
 
 *made with determination and sleep deprivation by Aayush Acharya*
+*last updated: May 8, 2025*

@@ -1,17 +1,17 @@
-// Main.js - Core typing game functionality
+// Main.js - The Mikasa of this app (does all the heavy lifting)
 
-// Game state
+// Game state - gotta track everything like Shikamaru planning a battle
 const typingGame = {
     active: false,
-    timeMode: true, // Default to timed mode
-    timeLeft: 15, // 15 seconds for timed mode
-    wordLimit: 20, // 20 words for word mode
+    timeMode: true, // Default to timed mode like a true speedrunner
+    timeLeft: 15, // 15 seconds for timed mode (time flies like Minato)
+    wordLimit: 20, // Default to 20 words for word mode
     wordCount: 0,
     words: [],
     currentWordIndex: 0,
     wordsDisplayed: 3, // Number of words to display at once - fixed at exactly 3
-    wordsPerLine: 14, // Words per line so it displays bascially how many words fit in the screen
-    currentLineIndex: 0, // Track which line we're on
+    wordsPerLine: 14, // Words per line so it displays basically how many words fit in the screen
+    currentLineIndex: 0, // Track which line we're on like tracking Titans on the battlefield
     typedCorrectChars: 0,
     typedIncorrectChars: 0,
     totalChars: 0,
@@ -22,15 +22,20 @@ const typingGame = {
     logoClickCount: 0,
     logoClickTimer: null,
     
-    // Word history for current session
+    // Word history for current session (better than Nico Robin's history knowledge tbh)
     currentWordHistory: [],
+    
+    // New property to track the current word mode
+    wordModeCount: 20, // Default to 20 words
 };
 
-// DOM elements
+// DOM elements - gotta grab everything like Luffy stealing meat
 const elements = {
     logo: document.getElementById('logo'),
     timedModeBtn: document.getElementById('timed-mode'),
     wordModeBtn: document.getElementById('word-mode'),
+    wordCountButtons: document.querySelectorAll('.word-count-btn'),
+    wordCountDropdown: document.querySelector('.word-count-dropdown'),
     statsToggleBtn: document.getElementById('stats-toggle'),
     textDisplay: document.getElementById('text-display'),
     hiddenInput: document.getElementById('hidden-input'),
@@ -48,7 +53,13 @@ const elements = {
     filterButtons: {
         all: document.getElementById('filter-all'),
         timed: document.getElementById('filter-timed'),
-        word: document.getElementById('filter-word')
+        'word-20': document.getElementById('filter-word-20'),
+        'word-50': document.getElementById('filter-word-50'),
+        'word-100': document.getElementById('filter-word-100'),
+        'word-200': document.getElementById('filter-word-200'),
+        'word-500': document.getElementById('filter-word-500'),
+        'word-1000': document.getElementById('filter-word-1000'),
+        zoro: document.getElementById('filter-zoro')
     },
     viewButtons: {
         bar: document.getElementById('view-bar'),
@@ -59,14 +70,19 @@ const elements = {
     wpmGraph: document.getElementById('wpm-graph')
 };
 
-// Set up global access for modules
+// Set up global access for modules - make everything available like the One Piece
 window.typingGame = {
     elements,
     state: typingGame
 };
 
+// Initialize all modules directly to avoid timing issues
+document.addEventListener('DOMContentLoaded', function() {
+    init();
+});
+
 /**
- * Initialize the game
+ * Initialize the game - like Kakashi saying "begin"
  */
 function init() {
     // Set app title to TypeSmash
@@ -84,18 +100,53 @@ function init() {
     elements.closeStatsBtn.addEventListener('click', toggleStats);
     elements.clearHistoryBtn.addEventListener('click', confirmClearHistory);
     
+    // Continue button for starting a new test
+    const continueBtn = document.getElementById('continue-btn');
+    if (continueBtn) {
+        continueBtn.addEventListener('click', () => {
+            resetTest();
+            elements.hiddenInput.focus();
+        });
+    }
+    
+    // Word count selection buttons
+    elements.wordCountButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const wordCount = parseInt(button.dataset.wordCount, 10);
+            if (!isNaN(wordCount)) {
+                setWordCountMode(wordCount);
+            }
+        });
+    });
+    
+    // Show/hide word count dropdown when word mode is clicked
+    elements.wordModeBtn.addEventListener('click', () => {
+        elements.wordCountDropdown.classList.toggle('show');
+    });
+    
+    // Hide dropdown when clicking elsewhere
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.word-mode-container')) {
+            elements.wordCountDropdown.classList.remove('show');
+        }
+    });
+    
     // Filter buttons
     for (const key in elements.filterButtons) {
-        elements.filterButtons[key].addEventListener('click', () => {
-            setActiveFilter(key);
-        });
+        if (elements.filterButtons[key]) {
+            elements.filterButtons[key].addEventListener('click', () => {
+                setActiveFilter(key);
+            });
+        }
     }
     
     // View buttons
     for (const key in elements.viewButtons) {
-        elements.viewButtons[key].addEventListener('click', () => {
-            setActiveView(key);
-        });
+        if (elements.viewButtons[key]) {
+            elements.viewButtons[key].addEventListener('click', () => {
+                setActiveView(key);
+            });
+        }
     }
     
     // Input handling
@@ -134,12 +185,50 @@ function init() {
         timeLabel.textContent = typingGame.timeMode ? 'Time' : 'Words';
     }
     
+    // Ensure words collection is loaded
+    if (window.utilsModule && window.utilsModule.loadWordsCollection) {
+        window.utilsModule.loadWordsCollection();
+    }
+    
     // Start with the default mode
     resetTest();
+    
+    // Focus the input for immediate typing
+    elements.hiddenInput.focus();
 }
 
 /**
- * Set game mode (timed or word count)
+ * Set word count mode for word mode
+ * @param {number} wordCount - Number of words (20, 50, 100, 200, 500, or 1000)
+ */
+function setWordCountMode(wordCount) {
+    // Update word count
+    typingGame.wordLimit = wordCount;
+    typingGame.wordModeCount = wordCount;
+    
+    // Update active state on buttons
+    elements.wordCountButtons.forEach(button => {
+        const btnWordCount = parseInt(button.dataset.wordCount, 10);
+        button.classList.toggle('active', btnWordCount === wordCount);
+    });
+    
+    // Update word mode button text
+    elements.wordModeBtn.textContent = `${wordCount}w`;
+    
+    // Close the dropdown
+    elements.wordCountDropdown.classList.remove('show');
+    
+    // If already in word mode, reset the test with new word count
+    if (!typingGame.timeMode) {
+        resetTest();
+    }
+    
+    // Ensure focus is set on input
+    setTimeout(() => elements.hiddenInput.focus(), 0);
+}
+
+/**
+ * Set game mode (timed or word count) - pick your poison
  * @param {string} mode - 'timed' or 'word'
  */
 function setMode(mode) {
@@ -164,7 +253,7 @@ function setMode(mode) {
 }
 
 /**
- * Reset typing test to start a new one
+ * Reset typing test to start a new one - like getting a senzu bean
  */
 function resetTest() {
     // Cancel existing timer
@@ -186,9 +275,14 @@ function resetTest() {
     typingGame.doneTyping = false;
     typingGame.currentWordHistory = [];
     
-    // Prepare words
-    const numWordsToGenerate = typingGame.timeMode ? 100 : typingGame.wordLimit;
-    generateWords(numWordsToGenerate);
+    // Prepare words based on mode
+    if (typingGame.timeMode) {
+        // For timed mode, still use random single words
+        generateWords(100);
+    } else {
+        // For word mode, use passage-based approach
+        loadPassageWords(typingGame.wordModeCount);
+    }
     
     // Reset UI
     updateWordDisplay();
@@ -217,13 +311,37 @@ function resetTest() {
 }
 
 /**
- * Generate random words for the test
+ * Generate random words for the test - RNG gods be with us
  * @param {number} count - How many words to generate
  */
 function generateWords(count) {
     typingGame.words = [];
     for (let i = 0; i < count; i++) {
         typingGame.words.push(getRandomWord());
+    }
+}
+
+/**
+ * Load words from a text passage based on word count
+ * @param {number} wordCount - Nominal word count
+ */
+function loadPassageWords(wordCount) {
+    if (window.utilsModule && window.utilsModule.getRandomPassage) {
+        // Get a passage and its actual word count
+        const { text, actualWordCount } = window.utilsModule.getRandomPassage(wordCount);
+        
+        // Update actual word count in game state
+        typingGame.actualWordCount = actualWordCount;
+        
+        // Split the passage into words
+        typingGame.words = text.trim().split(/\s+/).filter(word => word.length > 0);
+        
+        // Update word limit to actual count
+        typingGame.wordLimit = actualWordCount;
+    } else {
+        // Fall back to random words if utility function is not available
+        generateWords(wordCount);
+        typingGame.actualWordCount = wordCount;
     }
 }
 
@@ -353,7 +471,7 @@ function startTest() {
 }
 
 /**
- * End the typing test
+ * End the typing test - GAME OVER like when Ace died (still not over it tbh)
  */
 function endTest() {
     // Ignore if test is not active or already ended
@@ -395,13 +513,19 @@ function endTest() {
             ? '15s' 
             : formatTime((Date.now() - typingGame.startTime) / 1000);
             
+        // Modified mode identifier to include word count for word mode
+        const modeIdentifier = typingGame.timeMode 
+            ? 'timed' 
+            : `word-${typingGame.wordModeCount}`;
+            
         window.statsModule.saveToHistory(
             wpm,
             accuracy,
-            typingGame.timeMode ? 'timed' : 'word',
+            modeIdentifier,
             typingGame.typedCorrectChars,
             typingGame.errorCount,
-            timeDisplay
+            timeDisplay,
+            !typingGame.timeMode ? typingGame.actualWordCount : null // Only pass actual word count for word mode
         );
     }
     
@@ -764,14 +888,105 @@ function setUpZoroTrigger() {
     });
 }
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', init);
+// Main Application Entry Point
 
-// Make functions globally accessible
-window.mainModule = {
-    init,
-    resetTest,
-    toggleStats,
-    setActiveFilter,
-    setActiveView
-};
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+});
+
+// Initialize the application
+function initializeApp() {
+    // Set up event listeners
+    initializeKeyboardEvents();
+    
+    // Check for Zoro Mode and initialize if available
+    if (window.zoroModule) {
+        window.zoroModule.init();
+    }
+    
+    // Initialize statistics module if available
+    if (window.statsModule) {
+        window.statsModule.init();
+    }
+}
+
+// Initialize keyboard event listeners
+function initializeKeyboardEvents() {
+    const textInput = document.getElementById('hidden-input'); // Changed from 'text-input' to 'hidden-input'
+    
+    if (!textInput) {
+        console.warn('Hidden input element not found. Keyboard events may not work properly.');
+        return; // Exit the function if the element doesn't exist
+    }
+    
+    // Focus the input field when the page loads
+    textInput.focus();
+    
+    // Focus the input field when the user clicks anywhere on the document
+    document.addEventListener('click', function(event) {
+        // Only focus if we're not clicking on another input or interactive element
+        const tagName = event.target.tagName.toLowerCase();
+        if (tagName !== 'input' && tagName !== 'button' && tagName !== 'a' && tagName !== 'textarea') {
+            textInput.focus();
+        }
+    });
+    
+    // Handle input for Zoro Mode activation
+    textInput.addEventListener('input', function(event) {
+        const value = event.target.value.trim();
+        
+        // Check for Zoro Mode trigger
+        if (window.zoroModule && window.zoroModule.isZoroTriggerSequence(value)) {
+            // Clear input
+            event.target.value = '';
+            
+            // Activate Zoro Mode
+            window.zoroModule.activate();
+        }
+    });
+}
+
+// Add dark mode toggle functionality
+const darkModeToggle = document.getElementById('dark-mode-toggle');
+if (darkModeToggle) {
+    darkModeToggle.addEventListener('click', function() {
+        document.body.classList.toggle('dark-mode');
+        
+        // Save preference to localStorage
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        localStorage.setItem('dark-mode', isDarkMode);
+    });
+    
+    // Check for saved preference
+    const savedDarkMode = localStorage.getItem('dark-mode');
+    if (savedDarkMode === 'true') {
+        document.body.classList.add('dark-mode');
+    }
+}
+
+// Utility functions for general use throughout the app
+// Add any shared utility functions here that may be used across different modules
+
+// Example: Function to show a temporary notification
+function showNotification(message, duration = 3000) {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Trigger appearance
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 10);
+    
+    // Remove after duration
+    setTimeout(() => {
+        notification.classList.remove('show');
+        
+        // Remove from DOM after animation
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, duration);
+}

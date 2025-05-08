@@ -1,1364 +1,1283 @@
-// Zoro Mode Module
-// An action-packed typing game mode
-
-// Game state
-const zoroState = {
-    active: false,
-    score: 0,
-    level: 1,
-    difficultyIndex: 0, // Index to track which difficulty tier we're on (0=East Blue, 1=Paradise, etc.)
-    difficultyTiers: ["East Blue", "Paradise", "Warlord_Commander", "Yonko"], // Themed difficulty levels
-    tierThresholds: [0, 3000, 8000, 15000], // Score thresholds to advance to next tier
-    wordLists: null, // Will hold the loaded word lists from JSON
-    lives: 3,
-    combo: 0,
-    maxCombo: 0,
-    words: [],
-    powerups: {
-        onigiri: { available: false, cooldown: 0 },
-        haki: { available: false, cooldown: 0, active: false },
-        ashura: { available: false, cooldown: 0 }
-    },
-    startTime: null,
-    gameLoop: null,
-    canvas: null,
-    ctx: null
-};
-
-// Word object class
-class ZoroWord {
-    constructor(word, speed, direction = 'down') {
-        this.word = word;
-        this.display = word;
-        this.x = Math.random() * (window.innerWidth - 200) + 100;
-        this.y = direction === 'down' ? -50 : window.innerHeight + 50;
-        this.speed = speed;
-        this.direction = direction; // 'down' or 'up'
-        this.size = Math.max(16, Math.min(24, 18 + zoroState.level / 2));
-        this.hit = false;
-        this.opacity = 1;
-        this.rotation = (Math.random() - 0.5) * 0.2;
-        this.color = '#b19cd9'; 
-    }
-
-    update() {
-        // Move word based on direction
-        if (this.direction === 'down') {
-            this.y += this.speed;
-        } else {
-            this.y -= this.speed;
-        }
-        
-        // If word is hit, animate it disappearing
-        if (this.hit) {
-            this.opacity -= 0.1;
-        }
-        
-        return this.opacity <= 0;
-    }
-
-    draw(ctx) {
-        if (this.opacity <= 0) return;
-        
-        ctx.save();
-        ctx.globalAlpha = this.opacity;
-        ctx.translate(this.x, this.y);
-        ctx.rotate(this.rotation);
-        
-        // Word shadow
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.font = `${this.size}px "Roboto Mono", monospace`;
-        ctx.fillText(this.display, 2, 2);
-        
-        // Actual word
-        ctx.fillStyle = this.color;
-        ctx.font = `${this.size}px "Roboto Mono", monospace`;
-        ctx.fillText(this.display, 0, 0);
-        
-        ctx.restore();
-    }
-
-    isOffScreen() {
-        return (
-            (this.direction === 'down' && this.y > window.innerHeight + 100) ||
-            (this.direction === 'up' && this.y < -100)
-        );
-    }
-}
-
-// DOM Elements
-const zoroElements = {
-    container: document.getElementById('zoro-container'),
-    canvas: document.getElementById('zoro-canvas'),
-    scoreElement: document.getElementById('zoro-score'),
-    levelElement: document.getElementById('zoro-level'),
-    input: document.getElementById('zoro-input'),
-    exitBtn: document.getElementById('zoro-exit')
-};
-
-// Audio elements
-const zoroAudio = {
-    theme: new Audio('sounds/zorobattletheme.mp3'),
-    slash1: new Audio('sounds/slash1.mp3'),
-    slash2: new Audio('sounds/slash2.mp3'),
-    onigiri: new Audio('sounds/onigiri.mp3'),
-    haki: new Audio('sounds/haki.mp3'),
-    ashura: new Audio('sounds/checkashura.mp3'),
-    laugh: new Audio('sounds/evillaugh1.mp3'),
-    ko: new Audio('sounds/KO.mp3'),
-    gameover: new Audio('sounds/gameover.mp3')
-};
-
-// Set audio properties
-function configureAudio() {
-    zoroAudio.theme.loop = true;
-    zoroAudio.theme.volume = 0.5;
-    
-    // Set shorter audio to lower volume
-    const shortSounds = [zoroAudio.slash1, zoroAudio.slash2, zoroAudio.onigiri, 
-                         zoroAudio.haki, zoroAudio.ashura, zoroAudio.laugh, 
-                         zoroAudio.ko, zoroAudio.gameover];
-                         
-    shortSounds.forEach(sound => {
-        sound.volume = 0.4;
-    });
-}
-
-/**
- * Initialize Zoro Mode
- */
-function initZoroMode() {
-    // Set up canvas
-    zoroElements.canvas.width = window.innerWidth;
-    zoroElements.canvas.height = window.innerHeight;
-    zoroState.canvas = zoroElements.canvas;
-    zoroState.ctx = zoroElements.canvas.getContext('2d');
-    
-    // Set up event listeners
-    zoroElements.input.addEventListener('input', handleZoroInput);
-    zoroElements.exitBtn.addEventListener('click', exitZoroMode);
-    
-    // Handle resizing
-    window.addEventListener('resize', handleZoroResize);
-    
-    // Configure audio
-    configureAudio();
-    
-    // Load word lists
-    loadZoroWordLists();
-}
-
-/**
- * Activate Zoro Mode
- */
-function activateZoroMode() {
-    // Only activate if not already active
-    if (zoroState.active) return;
-    
-    // Reset game state
-    resetZoroGameState();
-    
-    // Show Zoro container
-    zoroElements.container.classList.remove('hidden');
-    document.body.classList.add('zoro-active');
-    
-    // Get reference to the background video
-    const bgVideo = document.getElementById('zoro-bg-video');
-    
-    // Play activation glitch effect
-    playGlitchEffect();
-    
-    // Focus input and start game
-    setTimeout(() => {
-        zoroElements.input.focus();
-        
-        // Start theme music
-        zoroAudio.theme.currentTime = 0;
-        zoroAudio.theme.play().catch(err => console.error('Audio playback error:', err));
-        
-        // Play the background video
-        bgVideo.currentTime = 0;
-        bgVideo.play().catch(err => console.error('Video playback error:', err));
-        
-        // Start game loop
-        startZoroGameLoop();
-        
-        // Record start time
-        zoroState.startTime = Date.now();
-        
-        // Set active flag
-        zoroState.active = true;
-    }, 1000); // Start after glitch effect
-}
-
-/**
- * Exit Zoro Mode
- */
-function exitZoroMode() {
-    if (!zoroState.active) return;
-    
-    // Stop game loop
-    cancelAnimationFrame(zoroState.gameLoop);
-    
-    // Fade out music
-    const fadeInterval = setInterval(() => {
-        if (zoroAudio.theme.volume > 0.05) {
-            zoroAudio.theme.volume -= 0.05;
-        } else {
-            clearInterval(fadeInterval);
-            zoroAudio.theme.pause();
-            zoroAudio.theme.volume = 0.5;
-        }
-    }, 100);
-    
-    // Stop all other sounds
-    Object.values(zoroAudio).forEach(audio => {
-        if (audio !== zoroAudio.theme) {
-            audio.pause();
-            audio.currentTime = 0;
-        }
-    });
-    
-    // Save game stats to history
-    const gameDuration = Math.round((Date.now() - zoroState.startTime) / 1000);
-    
-    if (window.statsModule && typeof window.statsModule.saveZoroGameToHistory === 'function') {
-        window.statsModule.saveZoroGameToHistory(
-            zoroState.score, 
-            zoroState.level, 
-            zoroState.maxCombo, 
-            gameDuration
-        );
-    }
-    
-    // Hide Zoro container
-    zoroElements.container.classList.add('hidden');
-    document.body.classList.remove('zoro-active');
-    
-    // Reset active flag
-    zoroState.active = false;
-}
-
-/**
- * Reset game state for a new game
- */
-function resetZoroGameState() {
-    zoroState.score = 0;
-    zoroState.level = 1;
-    zoroState.difficultyIndex = 0;
-    zoroState.lives = 3;
-    zoroState.combo = 0;
-    zoroState.maxCombo = 0;
-    zoroState.words = [];
-    zoroState.powerups = {
-        onigiri: { available: false, cooldown: 0 },
-        haki: { available: false, cooldown: 0, active: false },
-        ashura: { available: false, cooldown: 0 }
+// Zoro Mode Module - Enhanced Typing Game with Zoro Theme
+window.zoroModule = (function() {
+    // Game state
+    const zoroState = {
+        active: false,
+        level: 1,
+        score: 0,
+        combo: 0,
+        maxCombo: 0,
+        lives: 3,
+        words: [],
+        currentWord: "",
+        wordList: [],
+        timer: null,
+        gameSpeed: 1000, // Word spawn rate in ms
+        wordSpeed: 1.5,  // Speed at which words fall
+        spawnTimer: null,
+        gameActive: false,
+        audioContext: null,
+        sounds: {},
+        background: null,
+        activePowerUp: null,
+        powerUpTimers: {
+            onigiri: null,
+            haki: null
+        },
+        hakiActive: false,
+        ashuraActive: false,
+        lastSuccessTime: Date.now(),
+        gameStartTime: 0,
+        difficultyTier: 'East Blue'
     };
-    
-    // Reset UI
-    updateZoroUI();
-    
-    // Clear input
-    zoroElements.input.value = '';
-    
-    // Remove any existing UI elements
-    removeZoroUIElements();
-}
 
-/**
- * Handle Zoro Mode input
- * @param {Event} event - Input event
- */
-function handleZoroInput(event) {
-    const inputValue = event.target.value.trim().toLowerCase();
+    // DOM Elements
+    let zoroContainer, zoroCanvas, ctx, zoroInput, zoroLives, zoroPowerUps, zoroScoreDisplay, comboDisplay;
     
-    // Skip empty input
-    if (!inputValue) return;
+    // Constants
+    const ZORO_TRIGGER = "zoro";
+    const POWER_UP_THRESHOLD = {
+        ONIGIRI: 100,  // Reduced from 150
+        HAKI: 200,     // Reduced from 300
+        ASHURA: 350    // Reduced from 500
+    };
+    const DIFFICULTY_TIERS = [
+        {name: 'East Blue', threshold: 0, color: '#4a90e2'},
+        {name: 'Alabasta', threshold: 500, color: '#e9c46a'},
+        {name: 'Skypiea', threshold: 1000, color: '#f4a261'},
+        {name: 'Water 7', threshold: 2000, color: '#2a9d8f'},
+        {name: 'Enies Lobby', threshold: 3000, color: '#e76f51'},
+        {name: 'Thriller Bark', threshold: 4000, color: '#6d597a'},
+        {name: 'Sabaody', threshold: 5000, color: '#b56576'},
+        {name: 'Marineford', threshold: 7500, color: '#e63946'},
+        {name: 'Fish-Man Island', threshold: 10000, color: '#06d6a0'},
+        {name: 'Dressrosa', threshold: 15000, color: '#bc6c25'},
+        {name: 'Whole Cake Island', threshold: 20000, color: '#ff70a6'},
+        {name: 'Wano', threshold: 25000, color: '#9b5de5'},
+        {name: 'Laugh Tale', threshold: 30000, color: '#ffd700'}
+    ];
     
-    // Check for power-up activation
-    if (activatePowerUp(inputValue)) {
-        // Clear input if power-up was activated
-        event.target.value = '';
-        return;
+    // ZoroWord class - for the falling words in Zoro Mode
+    class ZoroWord {
+        constructor(word, speed) {
+            this.word = word;
+            this.speed = speed;
+            this.hit = false;
+            this.hitAnimation = 0;
+            this.fontSize = 20 + Math.floor(Math.random() * 10); // Randomize font size a bit
+            
+            // Position the word randomly
+            this.x = Math.random() * (zoroCanvas.width - 200) + 100;
+            this.y = -50; // Start above the screen
+            
+            // Random direction (slightly angled)
+            this.angle = (Math.random() - 0.5) * 0.5;
+            this.dx = Math.sin(this.angle) * this.speed;
+            this.dy = Math.cos(this.angle) * this.speed;
+            
+            // Color based on word length (harder words are more dangerous)
+            if (word.length <= 3) {
+                this.color = '#4a90e2'; // Easy: Blue
+            } else if (word.length <= 6) {
+                this.color = '#e9c46a'; // Medium: Gold
+            } else {
+                this.color = '#e63946'; // Hard: Red
+            }
+        }
+        
+        update() {
+            // If hit, do hit animation and return true to remove
+            if (this.hit) {
+                this.hitAnimation++;
+                return this.hitAnimation > 10;
+            }
+            
+            // Update position
+            this.x += this.dx;
+            this.y += this.dy;
+            
+            // Bounce off walls
+            if (this.x < 0 || this.x > zoroCanvas.width - 100) {
+                this.dx = -this.dx;
+            }
+            
+            // Return false to keep in the array
+            return false;
+        }
+        
+        draw(ctx) {
+            // Don't draw if hit animation is done
+            if (this.hit && this.hitAnimation > 10) return;
+            
+            // Save context
+            ctx.save();
+            
+            // Set font
+            ctx.font = `${this.fontSize}px 'Helvetica', sans-serif`;
+            ctx.fillStyle = this.hit ? '#ff0000' : this.color;
+            ctx.textAlign = 'center';
+            
+            // Apply hit animation
+            if (this.hit) {
+                // Flash and fade out
+                ctx.globalAlpha = 1 - (this.hitAnimation / 10);
+                ctx.shadowColor = '#ff0000';
+                ctx.shadowBlur = 10;
+                
+                // Scale up when hit
+                const scale = 1 + (this.hitAnimation / 5);
+                ctx.translate(this.x, this.y);
+                ctx.scale(scale, scale);
+                ctx.translate(-this.x, -this.y);
+            } else if (zoroState.hakiActive) {
+                // Add Haki effect (slight glow and slow-mo appearance)
+                ctx.shadowColor = '#000000';
+                ctx.shadowBlur = 5;
+            }
+            
+            // Draw text
+            ctx.fillText(this.word, this.x, this.y);
+            
+            // Restore context
+            ctx.restore();
+        }
+        
+        isOffScreen() {
+            return this.y > zoroCanvas.height + 50;
+        }
     }
     
-    // Look for matching word
-    const matchedWordIndex = zoroState.words.findIndex(word => 
-        word.word.toLowerCase() === inputValue && !word.hit
-    );
-    
-    if (matchedWordIndex !== -1) {
-        const matchedWord = zoroState.words[matchedWordIndex];
-        
-        // Mark word as hit
-        matchedWord.hit = true;
-        matchedWord.color = '#7aac7a'; // Success color
-        
-        // Play slash sound
-        const slashSound = Math.random() > 0.5 ? zoroAudio.slash1 : zoroAudio.slash2;
-        slashSound.currentTime = 0;
-        slashSound.play().catch(err => console.error('Audio playback error:', err));
-        
-        // Create sword slash effect at word location
-        createSlashEffect(matchedWord.x, matchedWord.y);
-        
-        // Increase score
-        increaseScore(inputValue.length);
-        
-        // Increase combo
-        increaseCombo();
-        
-        // Check for powerup unlocks based on combo
-        checkPowerUpUnlocks();
-        
-        // Clear input
-        event.target.value = '';
-        return;
+    // Initialize the module
+    function init() {
+        preloadWordList();
+        console.log("Zoro mode initialized and ready");
     }
     
-    // If reaching here, no word was matched - keep the input for now
-}
-
-/**
- * Start the Zoro game loop
- */
-function startZoroGameLoop() {
-    // Variables to track time and spawning
-    let lastTimestamp = 0;
-    let lastWordSpawn = 0;
-    let lastPowerUpCheck = 0;
+    // Preload words for Zoro Mode
+    function preloadWordList() {
+        // Use available word collection or fetch words
+        fetch('zorotypinggamewords.json')
+            .then(response => response.json())
+            .then(data => {
+                zoroState.wordList = data;
+                console.log("Zoro mode: Word collection loaded from zorotypinggamewords.json");
+            })
+            .catch(error => {
+                console.error('Error loading word list for Zoro Mode:', error);
+                // Default word list if fetch fails
+                zoroState.wordList = {
+                    "East Blue": [
+                        "zoro", "sword", "cut", "hit", "run", "win", "tag", "rip"
+                    ]
+                };
+                console.log("Zoro mode: Using fallback word list");
+            });
+    }
     
-    // Game loop function
-    const gameLoop = (timestamp) => {
-        // Calculate time elapsed since last frame
-        const elapsed = timestamp - lastTimestamp;
-        lastTimestamp = timestamp;
+    // Check if input is the Zoro Mode trigger sequence
+    function isZoroTriggerSequence(input) {
+        return input.toLowerCase() === ZORO_TRIGGER;
+    }
+
+    // Activate Zoro Mode
+    function activate() {
+        console.log("Attempting to activate Zoro Mode...");
+        
+        if (zoroState.active) {
+            console.log("Zoro Mode is already active");
+            return;
+        }
+        
+        zoroState.active = true;
+        console.log("Zoro Mode activated!");
+        
+        // Create Zoro Mode container
+        zoroContainer = document.createElement('div');
+        zoroContainer.id = 'zoro-container';
+        zoroContainer.className = 'zoro-container';
+        
+        // Add background video
+        const bgVideo = document.createElement('video');
+        bgVideo.className = 'zoro-bg-video';
+        bgVideo.src = 'assets/zoro.mp4';
+        bgVideo.autoplay = true;
+        bgVideo.loop = true;
+        bgVideo.muted = true;
+        bgVideo.playsInline = true;
+        
+        // Add canvas for word rendering
+        zoroCanvas = document.createElement('canvas');
+        zoroCanvas.id = 'zoro-canvas';
+        
+        // Add score display in the bottom-right corner
+        zoroScoreDisplay = document.createElement('div');
+        zoroScoreDisplay.className = 'zoro-score-display';
+        zoroScoreDisplay.innerHTML = `
+            <div class="level-indicator">Level ${zoroState.level}</div>
+            <div class="score-line">
+                <span>Score:</span>
+                <span class="stat-value" id="zoro-score">0</span>
+            </div>
+            <div class="score-line">
+                <span>Combo:</span>
+                <span class="stat-value" id="zoro-combo">0</span>
+            </div>
+            <div class="score-line">
+                <span>Level:</span>
+                <span class="stat-value" id="zoro-difficulty">East Blue</span>
+            </div>
+        `;
+        
+        // Add lives display
+        zoroLives = document.createElement('div');
+        zoroLives.className = 'zoro-lives';
+        updateLives();
+        
+        // Add power-ups display
+        zoroPowerUps = document.createElement('div');
+        zoroPowerUps.className = 'zoro-power-ups';
+        zoroPowerUps.innerHTML = `
+            <div class="power-up" id="onigiri-power">
+                <span class="power-icon">⚡</span>
+                <span class="power-name">Onigiri (${POWER_UP_THRESHOLD.ONIGIRI})</span>
+            </div>
+            <div class="power-up" id="haki-power">
+                <span class="power-icon">👁️</span>
+                <span class="power-name">Haki (${POWER_UP_THRESHOLD.HAKI})</span>
+            </div>
+            <div class="power-up" id="ashura-power">
+                <span class="power-icon">👹</span>
+                <span class="power-name">Ashura (${POWER_UP_THRESHOLD.ASHURA})</span>
+            </div>
+        `;
+        
+        // Add combo display
+        comboDisplay = document.createElement('div');
+        comboDisplay.className = 'zoro-combo';
+        comboDisplay.innerHTML = `
+            <div class="combo-count" id="combo-count">0</div>
+            <div class="combo-label">COMBO</div>
+        `;
+        
+        // Add input area
+        const inputArea = document.createElement('div');
+        inputArea.className = 'zoro-ui';
+        
+        const inputWrapper = document.createElement('div');
+        inputWrapper.className = 'zoro-input-area';
+        
+        zoroInput = document.createElement('input');
+        zoroInput.id = 'zoro-input';
+        zoroInput.type = 'text';
+        zoroInput.placeholder = 'Type the words to slash them...';
+        zoroInput.autocomplete = 'off';
+        zoroInput.autofocus = true;
+        
+        const exitButton = document.createElement('button');
+        exitButton.className = 'zoro-exit-btn';
+        exitButton.textContent = 'Exit Zoro Mode';
+        exitButton.addEventListener('click', deactivate);
+        
+        // Assemble the DOM structure
+        inputWrapper.appendChild(zoroInput);
+        inputArea.appendChild(inputWrapper);
+        inputArea.appendChild(exitButton);
+        
+        zoroContainer.appendChild(bgVideo);
+        zoroContainer.appendChild(zoroCanvas);
+        zoroContainer.appendChild(zoroScoreDisplay);
+        zoroContainer.appendChild(zoroLives);
+        zoroContainer.appendChild(zoroPowerUps);
+        zoroContainer.appendChild(comboDisplay);
+        zoroContainer.appendChild(inputArea);
+        
+        document.body.appendChild(zoroContainer);
+        document.body.classList.add('zoro-active');
+        
+        // Initialize canvas
+        setupCanvas();
+        
+        // Set up event listeners
+        setupEventListeners();
+        
+        // Start the game
+        startGame();
+        
+        // Initialize audio
+        initAudio();
+        
+        // Play background music
+        playSound('zorobattletheme', true);
+        
+        // Debug info
+        console.log("Zoro Mode UI elements created and added to document");
+    }
+    
+    // Update lives UI
+    function updateLives() {
+        if (!zoroLives) return;
+        
+        // Create lives display
+        let livesHTML = '';
+        for (let i = 0; i < zoroState.lives; i++) {
+            livesHTML += '<span class="zoro-life">🗡️</span>';
+        }
+        zoroLives.innerHTML = livesHTML;
+    }
+    
+    // Deactivate Zoro Mode
+    function deactivate() {
+        if (!zoroState.active) return;
+        
+        // Stop all audio
+        stopAllSounds();
+        
+        // Remove from DOM
+        if (zoroContainer && zoroContainer.parentNode) {
+            zoroContainer.parentNode.removeChild(zoroContainer);
+        }
+        
+        // Clear timers
+        if (zoroState.spawnTimer) {
+            clearInterval(zoroState.spawnTimer);
+            zoroState.spawnTimer = null;
+        }
+        
+        document.body.classList.remove('zoro-active');
+        
+        // Reset state
+        zoroState.active = false;
+        zoroState.gameActive = false;
+        
+        console.log("Zoro Mode deactivated");
+        
+        // Refocus on main input
+        setTimeout(() => {
+            const mainInput = document.getElementById('hidden-input');
+            if (mainInput) {
+                mainInput.focus();
+            }
+        }, 100);
+    }
+    
+    // Stop all sounds
+    function stopAllSounds() {
+        // Implementation would depend on your audio setup
+        // This is a placeholder for the actual implementation
+        if (zoroState.audioContext) {
+            zoroState.audioContext.suspend();
+        }
+    }
+    
+    // Setup canvas and context
+    function setupCanvas() {
+        zoroCanvas.width = window.innerWidth;
+        zoroCanvas.height = window.innerHeight;
+        ctx = zoroCanvas.getContext('2d');
+        
+        // Handle resize
+        window.addEventListener('resize', () => {
+            zoroCanvas.width = window.innerWidth;
+            zoroCanvas.height = window.innerHeight;
+        });
+    }
+    
+    // Set up event listeners for the game
+    function setupEventListeners() {
+        zoroInput.addEventListener('input', handleInput);
+        
+        // Handle key presses for power-ups
+        document.addEventListener('keydown', (e) => {
+            if (!zoroState.active) return;
+            
+            // Number keys for power-ups
+            if (e.key === '1' && canActivatePowerUp('onigiri')) {
+                activatePowerUp('onigiri');
+            } else if (e.key === '2' && canActivatePowerUp('haki')) {
+                activatePowerUp('haki');
+            } else if (e.key === '3' && canActivatePowerUp('ashura')) {
+                activatePowerUp('ashura');
+            }
+        });
+        
+        // Add click events for power-ups
+        document.getElementById('onigiri-power').addEventListener('click', () => {
+            if (canActivatePowerUp('onigiri')) {
+                activatePowerUp('onigiri');
+            }
+        });
+        
+        document.getElementById('haki-power').addEventListener('click', () => {
+            if (canActivatePowerUp('haki')) {
+                activatePowerUp('haki');
+            }
+        });
+        
+        document.getElementById('ashura-power').addEventListener('click', () => {
+            if (canActivatePowerUp('ashura')) {
+                activatePowerUp('ashura');
+            }
+        });
+    }
+    
+    // Initialize audio context and load sounds
+    function initAudio() {
+        try {
+            zoroState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Load sound effects
+            loadSound('slash1', 'sounds/slash1.mp3');
+            loadSound('slash2', 'sounds/slash2.mp3');
+            loadSound('gameover', 'sounds/gameover.mp3');
+            loadSound('onigiri', 'sounds/onigiri.mp3');
+            loadSound('haki', 'sounds/haki.mp3');
+            loadSound('checkashura', 'sounds/checkashura.mp3');
+            loadSound('evillaugh1', 'sounds/evillaugh1.mp3');
+            loadSound('KO', 'sounds/KO.mp3');
+            loadSound('zorobattletheme', 'sounds/zorobattletheme.mp3');
+            loadSound('levelup', 'sounds/levelup.mp3');
+        } catch (e) {
+            console.error('Web Audio API is not supported in this browser');
+        }
+    }
+    
+    // Load a sound file
+    function loadSound(id, url) {
+        fetch(url)
+            .then(response => response.arrayBuffer())
+            .then(arrayBuffer => zoroState.audioContext.decodeAudioData(arrayBuffer))
+            .then(audioBuffer => {
+                zoroState.sounds[id] = audioBuffer;
+            })
+            .catch(error => console.error('Error loading sound:', error));
+    }
+    
+    // Play a sound
+    function playSound(id, loop = false) {
+        if (!zoroState.audioContext || !zoroState.sounds[id]) {
+            console.log(`Could not play sound: ${id} - not loaded`);
+            return;
+        }
+        
+        const source = zoroState.audioContext.createBufferSource();
+        source.buffer = zoroState.sounds[id];
+        
+        // Create a gain node to control volume
+        const gainNode = zoroState.audioContext.createGain();
+        
+        // Set lower volume specifically for background music
+        if (id === 'zorobattletheme') {
+            gainNode.gain.value = 0.2; // 20% volume for background music
+        } else {
+            gainNode.gain.value = 1.0; // 100% volume for other sounds
+        }
+        
+        // Connect the source to the gain node, and the gain node to the output
+        source.connect(gainNode);
+        gainNode.connect(zoroState.audioContext.destination);
+        source.loop = loop;
+        
+        try {
+            source.start(0);
+            return source; // Return the source to stop it later if needed
+        } catch (e) {
+            console.error('Error playing sound:', e);
+        }
+    }
+    
+    // Start Zoro Mode game
+    function startGame() {
+        // Reset game state
+        zoroState.level = 1;
+        zoroState.score = 0;
+        zoroState.combo = 0;
+        zoroState.maxCombo = 0;
+        zoroState.lives = 3;
+        zoroState.words = [];
+        zoroState.gameActive = true;
+        zoroState.hakiActive = false;
+        zoroState.ashuraActive = false;
+        zoroState.gameSpeed = 1000;
+        zoroState.wordSpeed = 1.5;
+        zoroState.gameStartTime = Date.now();
+        zoroState.difficultyTier = 'East Blue';
+        
+        // Initialize game loop
+        gameLoop();
+        
+        // Start spawning words
+        startSpawningWords();
+        
+        // Focus on input
+        setTimeout(() => {
+            zoroInput.focus();
+        }, 100);
+        
+        // Update UI
+        updateScoreDisplay();
+        updateComboDisplay();
+        checkPowerUps();
+    }
+    
+    // Main game loop
+    function gameLoop() {
+        if (!zoroState.gameActive) return;
         
         // Clear canvas
-        zoroState.ctx.clearRect(0, 0, zoroState.canvas.width, zoroState.canvas.height);
-        
-        // Spawn words
-        if (timestamp - lastWordSpawn > getSpawnInterval()) {
-            spawnWord();
-            lastWordSpawn = timestamp;
-        }
+        ctx.clearRect(0, 0, zoroCanvas.width, zoroCanvas.height);
         
         // Update and draw words
         updateWords();
         
-        // Update powerup cooldowns
-        if (timestamp - lastPowerUpCheck > 1000) {
-            updatePowerUps();
-            lastPowerUpCheck = timestamp;
+        // Check for game over conditions
+        if (zoroState.lives <= 0) {
+            gameOver();
+            return;
         }
         
-        // Continue loop if game is still active
-        if (zoroState.active) {
-            zoroState.gameLoop = requestAnimationFrame(gameLoop);
-        }
-    };
-    
-    // Start the loop
-    zoroState.gameLoop = requestAnimationFrame(gameLoop);
-}
-
-/**
- * Get the word spawn interval based on current level
- * @returns {number} - Milliseconds between word spawns
- */
-function getSpawnInterval() {
-    const baseInterval = 2000; // 2 seconds at level 1
-    const minInterval = 400;   // Minimum spawn interval (ms)
-    
-    return Math.max(minInterval, baseInterval - (zoroState.level * 100));
-}
-
-/**
- * Get word speed based on current level
- * @returns {number} - Speed value
- */
-function getWordSpeed() {
-    const baseSpeed = 1.5;
-    return baseSpeed + (zoroState.level * 0.2);
-}
-
-/**
- * Spawn a new word
- */
-function spawnWord() {
-    // Get a word from the appropriate difficulty tier
-    const word = getZoroThemeWord();
-    
-    // Determine direction (chance for words to come from bottom increases with level)
-    const directionChance = Math.min(0.3, zoroState.level * 0.02);
-    const direction = Math.random() < directionChance ? 'up' : 'down';
-    
-    // Create word object with appropriate speed
-    const speed = getWordSpeed() * (0.8 + Math.random() * 0.4);
-    const zoroWord = new ZoroWord(word, speed, direction);
-    
-    // Add to words array
-    zoroState.words.push(zoroWord);
-}
-
-/**
- * Update and draw all words
- */
-function updateWords() {
-    // Update each word and remove if necessary
-    zoroState.words = zoroState.words.filter(word => {
-        // Check if word is off screen and not hit
-        if (word.isOffScreen() && !word.hit) {
-            // Player loses life
-            decreaseLife();
-            return false;
-        }
-        
-        // Update word position
-        const shouldRemove = word.update();
-        
-        // Draw word if not removed
-        if (!shouldRemove) {
-            word.draw(zoroState.ctx);
-        }
-        
-        return !shouldRemove;
-    });
-}
-
-/**
- * Increase player score
- * @param {number} wordLength - Length of the hit word
- */
-function increaseScore(wordLength) {
-    // Base score is word length * 10
-    let points = wordLength * 10;
-    
-    // Apply combo multiplier
-    if (zoroState.combo > 1) {
-        points *= (1 + (zoroState.combo * 0.1));
+        // Request next animation frame
+        requestAnimationFrame(gameLoop);
     }
     
-    // Apply level multiplier
-    points *= (1 + (zoroState.level * 0.05));
-    
-    // Round to integer
-    points = Math.round(points);
-    
-    // Update score
-    zoroState.score += points;
-    
-    // Update UI
-    updateZoroUI();
-    
-    // Check for level increase
-    checkLevelUp();
-}
-
-/**
- * Increase combo counter
- */
-function increaseCombo() {
-    zoroState.combo++;
-    
-    // Update max combo if current combo is higher
-    if (zoroState.combo > zoroState.maxCombo) {
-        zoroState.maxCombo = zoroState.combo;
+    // Start spawning words
+    function startSpawningWords() {
+        // Clear previous timer if any
+        if (zoroState.spawnTimer) {
+            clearInterval(zoroState.spawnTimer);
+        }
+        
+        // Set up new spawn timer
+        zoroState.spawnTimer = setInterval(() => {
+            if (zoroState.gameActive) {
+                spawnWord();
+            }
+        }, zoroState.gameSpeed);
     }
     
-    // Create combo display
-    updateComboDisplay();
-}
-
-/**
- * Update combo display with animation
- */
-function updateComboDisplay() {
-    // Remove existing combo display
-    const existingCombo = document.querySelector('.zoro-combo');
-    if (existingCombo) {
-        existingCombo.remove();
+    // Spawn a new word
+    function spawnWord() {
+        // Get a random word
+        const randomWord = getRandomWord();
+        
+        // Create word object with random position and direction
+        const word = new ZoroWord(
+            randomWord,
+            zoroState.wordSpeed + Math.random() * 0.5, // Add some randomness to speed
+        );
+        
+        // Add to words array
+        zoroState.words.push(word);
     }
     
-    // Create new combo display
-    if (zoroState.combo > 1) {
-        const comboElement = document.createElement('div');
-        comboElement.className = 'zoro-combo';
+    // Update words
+    function updateWords() {
+        // Update each word
+        for (let i = zoroState.words.length - 1; i >= 0; i--) {
+            const word = zoroState.words[i];
+            
+            // Update word position
+            const shouldRemove = word.update();
+            
+            // Draw word
+            word.draw(ctx);
+            
+            // Check if word is off screen
+            if (shouldRemove || word.isOffScreen()) {
+                // If word wasn't hit and fell to the floor, lose a life
+                if (!word.hit && word.isOffScreen()) {
+                    loseLife();
+                    createFlashEffect();
+                }
+                
+                // Remove word
+                zoroState.words.splice(i, 1);
+            }
+        }
+    }
+    
+    // Handle input
+    function handleInput(e) {
+        const input = zoroInput.value.trim().toLowerCase();
         
-        const comboCount = document.createElement('div');
-        comboCount.className = 'combo-count combo-update';
-        comboCount.textContent = `${zoroState.combo}x`;
+        // Check for power-up activation via typing with improved detection
+        if (input === "onigiri" || input === "1") {
+            if (canActivatePowerUp('onigiri')) {
+                activatePowerUp('onigiri');
+                zoroInput.value = '';
+                return;
+            }
+        } else if (input === "haki" || input === "2") {
+            if (canActivatePowerUp('haki')) {
+                activatePowerUp('haki');
+                zoroInput.value = '';
+                return;
+            }
+        } else if (input === "ashura" || input === "3") {
+            if (canActivatePowerUp('ashura')) {
+                activatePowerUp('ashura');
+                zoroInput.value = '';
+                return;
+            }
+        }
         
-        const comboLabel = document.createElement('div');
-        comboLabel.className = 'combo-label';
-        comboLabel.textContent = 'COMBO';
+        // Check if input matches any words
+        for (let i = 0; i < zoroState.words.length; i++) {
+            const word = zoroState.words[i];
+            
+            if (word.word.toLowerCase() === input && !word.hit) {
+                // Mark word as hit
+                word.hit = true;
+                
+                // Clear input
+                zoroInput.value = '';
+                
+                // Increase score
+                addScore(word.word.length * 10);
+                
+                // Increase combo
+                increaseCombo();
+                
+                // Play slash sound
+                const slashSound = Math.random() > 0.5 ? 'slash1' : 'slash2';
+                playSound(slashSound);
+                
+                // Create slash effect at word position
+                createSlashEffect(word.x, word.y);
+                
+                // Record successful hit time
+                zoroState.lastSuccessTime = Date.now();
+                
+                return;
+            }
+        }
+    }
+    
+    // Add score
+    function addScore(points) {
+        // Apply combo multiplier
+        const comboMultiplier = 1 + (zoroState.combo / 10);
+        const finalPoints = Math.floor(points * comboMultiplier);
         
-        comboElement.appendChild(comboCount);
-        comboElement.appendChild(comboLabel);
+        zoroState.score += finalPoints;
+        
+        // Update UI immediately to ensure score is displayed correctly
+        document.getElementById('zoro-score').textContent = zoroState.score;
+        
+        // Check for level up
+        checkLevelUp();
+        
+        // Check for difficulty tier change
+        checkDifficultyTier();
+        
+        // Update UI
+        updateScoreDisplay();
+        
+        // Check if power-ups are available
+        checkPowerUps();
+    }
+    
+    // Increase combo
+    function increaseCombo() {
+        zoroState.combo++;
+        zoroState.maxCombo = Math.max(zoroState.maxCombo, zoroState.combo);
+        
+        // Update UI with animation
+        updateComboDisplay(true);
+        
+        // Check power-ups after combo increases
+        checkPowerUps();
+    }
+    
+    // Reset combo if too much time has passed
+    function checkComboTimeout() {
+        // If more than 3 seconds since last hit, reset combo
+        const now = Date.now();
+        if (now - zoroState.lastSuccessTime > 3000 && zoroState.combo > 0) {
+            zoroState.combo = 0;
+            updateComboDisplay();
+        }
+    }
+    
+    // Check for level up
+    function checkLevelUp() {
+        // Level up every 500 points
+        const newLevel = Math.floor(zoroState.score / 500) + 1;
+        
+        if (newLevel > zoroState.level) {
+            // Level up
+            zoroState.level = newLevel;
+            
+            // Keep speed constant until level 10, then start increasing
+            if (newLevel >= 10) {
+                // After level 10, gradually make the game harder
+                zoroState.gameSpeed = Math.max(400, 1000 - (newLevel - 10) * 50);
+                zoroState.wordSpeed = Math.min(4, 1.5 + (newLevel - 10) * 0.2);
+            } else {
+                // For early levels (1-10), maintain an easy, consistent speed
+                zoroState.gameSpeed = 1500 - (newLevel * 30); // Gradually decrease spawn time (more words)
+                zoroState.wordSpeed = 0.8 + (newLevel * 0.05); // Very gradually increase word fall speed
+            }
+            
+            // Restart spawning with new speed
+            startSpawningWords();
+            
+            // Update UI
+            updateScoreDisplay();
+            
+            // Play level up sound
+            playSound('slash2');
+        }
+    }
+    
+    // Check for difficulty tier change
+    function checkDifficultyTier() {
+        // Find the highest tier that the player has surpassed
+        let newTier = null;
+        let newTierColor = null;
+        
+        for (let i = DIFFICULTY_TIERS.length - 1; i >= 0; i--) {
+            if (zoroState.score >= DIFFICULTY_TIERS[i].threshold) {
+                newTier = DIFFICULTY_TIERS[i].name;
+                newTierColor = DIFFICULTY_TIERS[i].color;
+                break;
+            }
+        }
+        
+        // If tier changed, update and show animation
+        if (newTier && newTier !== zoroState.difficultyTier) {
+            zoroState.difficultyTier = newTier;
+            
+            // Update UI
+            document.getElementById('zoro-difficulty').textContent = newTier;
+            document.getElementById('zoro-difficulty').style.color = newTierColor;
+            
+            // Create tier transition effect
+            showDifficultyTransition(newTier, newTierColor);
+            
+            // Play tier up sound
+            playSound('levelup');
+        }
+    }
+    
+    // Show difficulty tier transition effect
+    function showDifficultyTransition(tierName, color) {
+        // Create transition element
+        const transition = document.createElement('div');
+        transition.className = 'zoro-difficulty-transition';
+        transition.style.color = color;
+        transition.textContent = tierName;
+        
+        // Style the transition
+        transition.style.position = 'absolute';
+        transition.style.top = '50%';
+        transition.style.left = '50%';
+        transition.style.transform = 'translate(-50%, -50%)';
+        transition.style.fontSize = '5rem';
+        transition.style.fontWeight = 'bold';
+        transition.style.textShadow = `0 0 10px ${color}`;
+        transition.style.zIndex = '1050';
         
         // Add to container
-        zoroElements.container.appendChild(comboElement);
-    }
-}
-
-/**
- * Reset combo
- */
-function resetCombo() {
-    zoroState.combo = 0;
-    
-    // Remove combo display
-    const existingCombo = document.querySelector('.zoro-combo');
-    if (existingCombo) {
-        existingCombo.remove();
-    }
-}
-
-/**
- * Check if level should increase
- */
-function checkLevelUp() {
-    const scoreThreshold = zoroState.level * 1000;
-    
-    // Check for numeric level up first
-    if (zoroState.score >= scoreThreshold) {
-        zoroState.level++;
+        zoroContainer.appendChild(transition);
         
-        // Flash level indicator
-        const levelElement = zoroElements.levelElement;
-        levelElement.classList.add('flash');
+        // Remove after animation completes
         setTimeout(() => {
-            levelElement.classList.remove('flash');
-        }, 500);
+            transition.remove();
+        }, 3000);
+    }
+    
+    // Update the score display
+    function updateScoreDisplay() {
+        if (!zoroScoreDisplay) return;
         
-        // Shake the screen slightly
-        zoroElements.container.classList.add('shake-1');
-        setTimeout(() => {
-            zoroElements.container.classList.remove('shake-1');
-        }, 300);
+        // Make sure the score is visible and properly updated in all UI elements
+        document.querySelector('.level-indicator').textContent = `Level ${zoroState.level}`;
         
-        // Check powerup unlocks again on level up
-        checkPowerUpUnlocks();
-    }
-    
-    // Check for difficulty tier advancement
-    for (let i = zoroState.difficultyTiers.length - 1; i > zoroState.difficultyIndex; i--) {
-        if (zoroState.score >= zoroState.tierThresholds[i]) {
-            // Only trigger effects if this is a new tier
-            if (zoroState.difficultyIndex < i) {
-                zoroState.difficultyIndex = i;
-                
-                // Create difficulty transition effect
-                showDifficultyTransition(zoroState.difficultyTiers[i]);
-            }
-            break;
-        }
-    }
-    
-    // Update UI after any changes
-    updateZoroUI();
-}
-
-/**
- * Show difficulty transition effect
- * @param {string} newTier - New difficulty tier name
- */
-function showDifficultyTransition(newTier) {
-    // Create transition element
-    const transitionElement = document.createElement('div');
-    transitionElement.className = 'zoro-difficulty-transition';
-    transitionElement.style.position = 'absolute';
-    transitionElement.style.top = '50%';
-    transitionElement.style.left = '50%';
-    transitionElement.style.transform = 'translate(-50%, -50%)';
-    transitionElement.style.textAlign = 'center';
-    transitionElement.style.zIndex = '1025';
-    transitionElement.style.pointerEvents = 'none';
-    
-    // Title text
-    const titleElement = document.createElement('div');
-    titleElement.textContent = 'ENTERING';
-    titleElement.style.fontSize = '1.5rem';
-    titleElement.style.color = '#d1d0c5';
-    titleElement.style.marginBottom = '0.5rem';
-    
-    // Tier name text
-    const tierElement = document.createElement('div');
-    tierElement.textContent = newTier.toUpperCase();
-    tierElement.style.fontSize = '3rem';
-    tierElement.style.fontWeight = 'bold';
-    tierElement.style.color = getTierColor(newTier);
-    tierElement.style.textShadow = '0 0 15px ' + getTierColor(newTier) + '80';
-    
-    // Add elements to container
-    transitionElement.appendChild(titleElement);
-    transitionElement.appendChild(tierElement);
-    
-    // Add to container
-    zoroElements.container.appendChild(transitionElement);
-    
-    // Create background flash effect
-    zoroElements.container.classList.add('tier-transition');
-    
-    // Play sound effect
-    const sound = zoroAudio.ashura;
-    sound.currentTime = 0;
-    sound.play().catch(err => console.error('Audio playback error:', err));
-    
-    // Shake screen
-    zoroElements.container.classList.add('shake-3');
-    setTimeout(() => {
-        zoroElements.container.classList.remove('shake-3');
-    }, 700);
-    
-    // Remove transition after animation
-    setTimeout(() => {
-        transitionElement.remove();
-        zoroElements.container.classList.remove('tier-transition');
-    }, 3000);
-}
-
-/**
- * Get color for a specific difficulty tier
- * @param {string} tierName - Tier name
- * @returns {string} - Color code for tier
- */
-function getTierColor(tierName) {
-    switch(tierName) {
-        case 'East Blue': return '#7aac7a'; // Green
-        case 'Paradise': return '#b19cd9'; // Lavender
-        case 'Warlord_Commander': return '#e2b714'; // Gold
-        case 'Yonko': return '#ca4754'; // Red
-        default: return '#a88bfa'; // Default purple
-    }
-}
-
-/**
- * Decrease player life
- */
-function decreaseLife() {
-    // Only decrease if not in haki mode
-    if (zoroState.powerups.haki.active) return;
-    
-    zoroState.lives--;
-    
-    // Reset combo
-    resetCombo();
-    
-    // Shake screen
-    const shakeClass = zoroState.lives === 0 ? 'shake-3' : 'shake-2';
-    zoroElements.container.classList.add(shakeClass);
-    setTimeout(() => {
-        zoroElements.container.classList.remove(shakeClass);
-    }, shakeClass === 'shake-3' ? 700 : 500);
-    
-    // Update lives display
-    updateLivesDisplay();
-    
-    // Play hit sound
-    zoroAudio.laugh.currentTime = 0;
-    zoroAudio.laugh.play().catch(err => console.error('Audio playback error:', err));
-    
-    // Check game over
-    if (zoroState.lives <= 0) {
-        // Game over!
-        setTimeout(gameOver, 1000);
-    }
-}
-
-/**
- * End the game
- */
-function gameOver() {
-    // Play game over sound
-    zoroAudio.ko.currentTime = 0;
-    zoroAudio.ko.play().catch(err => console.error('Audio playback error:', err));
-    
-    // Stop the game loop
-    cancelAnimationFrame(zoroState.gameLoop);
-    
-    // Show game over screen
-    showGameOverScreen();
-    
-    // Note: We've removed the automatic exit here so the player can choose to play again
-}
-
-/**
- * Restart Zoro game after game over
- */
-function restartZoroGame() {
-    // Remove game over screen and overlay
-    if (zoroState.gameOverElement) {
-        zoroState.gameOverElement.remove();
-        zoroState.gameOverElement = null;
-    }
-    
-    if (zoroState.gameOverOverlay) {
-        zoroState.gameOverOverlay.remove();
-        zoroState.gameOverOverlay = null;
-    }
-    
-    // Save previous game stats to history
-    const gameDuration = Math.round((Date.now() - zoroState.startTime) / 1000);
-    
-    console.log('Attempting to save Zoro game stats:', {
-        score: zoroState.score,
-        level: zoroState.level,
-        maxCombo: zoroState.maxCombo,
-        duration: gameDuration
-    });
-    
-    if (window.statsModule && typeof window.statsModule.saveZoroGameToHistory === 'function') {
-        try {
-            window.statsModule.saveZoroGameToHistory(
-                zoroState.score, 
-                zoroState.level, 
-                zoroState.maxCombo, 
-                gameDuration
-            );
-            console.log('Successfully saved Zoro game stats');
-        } catch (error) {
-            console.error('Error saving Zoro game stats:', error);
-        }
-    } else {
-        console.error('statsModule or saveZoroGameToHistory function not found');
-    }
-    
-    // Reset the game state
-    resetZoroGameState();
-    
-    // Reset audio
-    zoroAudio.theme.currentTime = 0;
-    
-    // Reset video
-    const bgVideo = document.getElementById('zoro-bg-video');
-    if (bgVideo) {
-        bgVideo.currentTime = 0;
-        bgVideo.play().catch(err => console.error('Video playback error:', err));
-    }
-    
-    // Focus input
-    zoroElements.input.focus();
-    
-    // Record new start time
-    zoroState.startTime = Date.now();
-    
-    // Set active flag to true
-    zoroState.active = true;
-    
-    // Start a new game loop
-    startZoroGameLoop();
-}
-
-/**
- * Show game over screen
- */
-function showGameOverScreen() {
-    // Create game over element
-    const gameOverElement = document.createElement('div');
-    gameOverElement.style.position = 'absolute';
-    gameOverElement.style.top = '50%';
-    gameOverElement.style.left = '50%';
-    gameOverElement.style.transform = 'translate(-50%, -50%)';
-    gameOverElement.style.display = 'flex';
-    gameOverElement.style.flexDirection = 'column';
-    gameOverElement.style.alignItems = 'center';
-    gameOverElement.style.justifyContent = 'center';
-    gameOverElement.style.zIndex = '1030';
-    
-    // Game over text
-    const gameOverText = document.createElement('div');
-    gameOverText.textContent = 'GAME OVER';
-    gameOverText.style.color = '#ca4754';
-    gameOverText.style.fontSize = '4rem';
-    gameOverText.style.fontWeight = 'bold';
-    gameOverText.style.textShadow = '0 0 10px rgba(0, 0, 0, 0.7)';
-    gameOverText.style.marginBottom = '1rem';
-    
-    // Final score
-    const finalScore = document.createElement('div');
-    finalScore.textContent = `Final Score: ${zoroState.score}`;
-    finalScore.style.color = '#a88bfa';
-    finalScore.style.fontSize = '2rem';
-    finalScore.style.marginBottom = '0.5rem';
-    
-    // Get current difficulty tier
-    const currentTier = zoroState.difficultyTiers[zoroState.difficultyIndex];
-    const tierColor = getTierColor(currentTier);
-    
-    // Final level (showing tier instead of just numeric level)
-    const finalLevel = document.createElement('div');
-    finalLevel.textContent = currentTier;
-    finalLevel.style.color = tierColor;
-    finalLevel.style.fontSize = '1.5rem';
-    finalLevel.style.marginBottom = '0.5rem';
-    
-    // Max combo
-    const maxCombo = document.createElement('div');
-    maxCombo.textContent = `Max Combo: ${zoroState.maxCombo}x`;
-    maxCombo.style.color = '#7aac7a';
-    maxCombo.style.fontSize = '1.5rem';
-    maxCombo.style.marginBottom = '1.5rem';
-    
-    // Add play again button
-    const playAgainButton = document.createElement('button');
-    playAgainButton.textContent = 'PLAY AGAIN';
-    playAgainButton.style.backgroundColor = '#a88bfa';
-    playAgainButton.style.color = '#000';
-    playAgainButton.style.border = 'none';
-    playAgainButton.style.borderRadius = '4px';
-    playAgainButton.style.padding = '1rem 2rem';
-    playAgainButton.style.fontSize = '1.2rem';
-    playAgainButton.style.fontWeight = 'bold';
-    playAgainButton.style.cursor = 'pointer';
-    playAgainButton.style.marginBottom = '1rem';
-    playAgainButton.style.boxShadow = '0 0 10px rgba(168, 139, 250, 0.5)';
-    
-    // Hover effect
-    playAgainButton.onmouseover = function() {
-        this.style.backgroundColor = '#b19cd9';
-        this.style.transform = 'scale(1.05)';
-        this.style.transition = 'all 0.2s ease';
-    };
-    playAgainButton.onmouseout = function() {
-        this.style.backgroundColor = '#a88bfa';
-        this.style.transform = 'scale(1)';
-    };
-    
-    // Add click event
-    playAgainButton.onclick = function() {
-        restartZoroGame();
-    };
-    
-    // Exit button
-    const exitButton = document.createElement('button');
-    exitButton.textContent = 'EXIT';
-    exitButton.style.backgroundColor = 'transparent';
-    exitButton.style.color = '#d1d0c5';
-    exitButton.style.border = '1px solid #646669';
-    exitButton.style.borderRadius = '4px';
-    exitButton.style.padding = '0.5rem 1.5rem';
-    exitButton.style.fontSize = '1rem';
-    exitButton.style.cursor = 'pointer';
-    
-    // Hover effect
-    exitButton.onmouseover = function() {
-        this.style.backgroundColor = 'rgba(255,255,255,0.1)';
-        this.style.transition = 'all 0.2s ease';
-    };
-    exitButton.onmouseout = function() {
-        this.style.backgroundColor = 'transparent';
-    };
-    
-    // Add click event
-    exitButton.onclick = function() {
-        exitZoroMode();
-    };
-    
-    // Add all elements
-    gameOverElement.appendChild(gameOverText);
-    gameOverElement.appendChild(finalScore);
-    gameOverElement.appendChild(finalLevel);
-    gameOverElement.appendChild(maxCombo);
-    gameOverElement.appendChild(playAgainButton);
-    gameOverElement.appendChild(exitButton);
-    
-    // Add to container
-    zoroElements.container.appendChild(gameOverElement);
-    
-    // Add animation
-    gameOverElement.animate([
-        { opacity: 0, transform: 'translate(-50%, -70%)' },
-        { opacity: 1, transform: 'translate(-50%, -50%)' }
-    ], {
-        duration: 800,
-        easing: 'cubic-bezier(0.2, 0, 0.2, 1)'
-    });
-    
-    // Dim the background by adding semi-transparent overlay
-    const overlay = document.createElement('div');
-    overlay.style.position = 'absolute';
-    overlay.style.top = '0';
-    overlay.style.left = '0';
-    overlay.style.width = '100%';
-    overlay.style.height = '100%';
-    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-    overlay.style.zIndex = '1020';
-    
-    zoroElements.container.appendChild(overlay);
-    
-    // Fade in overlay
-    overlay.animate([
-        { opacity: 0 },
-        { opacity: 1 }
-    ], {
-        duration: 800,
-        easing: 'cubic-bezier(0.2, 0, 0.2, 1)'
-    });
-    
-    // Store reference to the overlay for later removal
-    zoroState.gameOverOverlay = overlay;
-    zoroState.gameOverElement = gameOverElement;
-}
-
-/**
- * Update the lives display
- */
-function updateLivesDisplay() {
-    // Remove existing lives display
-    const existingLives = document.querySelector('.zoro-lives');
-    if (existingLives) {
-        existingLives.remove();
-    }
-    
-    // Create lives container
-    const livesContainer = document.createElement('div');
-    livesContainer.className = 'zoro-lives';
-    
-    // Add hearts for each life
-    for (let i = 0; i < zoroState.lives; i++) {
-        const heart = document.createElement('div');
-        heart.className = 'zoro-heart';
-        heart.textContent = '❤️';
-        livesContainer.appendChild(heart);
-    }
-    
-    // Add to container
-    zoroElements.container.appendChild(livesContainer);
-}
-
-/**
- * Update Zoro UI with current stats
- */
-function updateZoroUI() {
-    zoroElements.scoreElement.textContent = zoroState.score;
-    
-    // Show current difficulty tier instead of just numeric level
-    const currentTier = zoroState.difficultyTiers[zoroState.difficultyIndex];
-    zoroElements.levelElement.textContent = currentTier;
-    zoroElements.levelElement.style.color = getTierColor(currentTier);
-    
-    // Update lives display
-    updateLivesDisplay();
-    
-    // Update power-ups display
-    updatePowerUpDisplay();
-}
-
-/**
- * Check if any power-up should be unlocked
- */
-function checkPowerUpUnlocks() {
-    // Onigiri (health) becomes available at combo 5 or level 3
-    if (!zoroState.powerups.onigiri.available && 
-        (zoroState.combo >= 5 || zoroState.level >= 3) && 
-        zoroState.powerups.onigiri.cooldown === 0) {
-        zoroState.powerups.onigiri.available = true;
-        updatePowerUpDisplay();
-    }
-    
-    // Haki becomes available at combo 10 or level 5
-    if (!zoroState.powerups.haki.available && 
-        (zoroState.combo >= 10 || zoroState.level >= 5) && 
-        zoroState.powerups.haki.cooldown === 0) {
-        zoroState.powerups.haki.available = true;
-        updatePowerUpDisplay();
-    }
-    
-    // Ashura becomes available at combo 15 or level 7
-    if (!zoroState.powerups.ashura.available && 
-        (zoroState.combo >= 15 || zoroState.level >= 7) && 
-        zoroState.powerups.ashura.cooldown === 0) {
-        zoroState.powerups.ashura.available = true;
-        updatePowerUpDisplay();
-    }
-}
-
-/**
- * Update power-up cooldowns
- */
-function updatePowerUps() {
-    // Update Onigiri cooldown
-    if (zoroState.powerups.onigiri.cooldown > 0) {
-        zoroState.powerups.onigiri.cooldown--;
-        if (zoroState.powerups.onigiri.cooldown === 0 && 
-            (zoroState.combo >= 5 || zoroState.level >= 3)) {
-            zoroState.powerups.onigiri.available = true;
-        }
-    }
-    
-    // Update Haki cooldown and active state
-    if (zoroState.powerups.haki.cooldown > 0) {
-        zoroState.powerups.haki.cooldown--;
-        if (zoroState.powerups.haki.cooldown === 0 && 
-            (zoroState.combo >= 10 || zoroState.level >= 5)) {
-            zoroState.powerups.haki.available = true;
-        }
-    }
-    
-    // Disable Haki after 15 seconds of activity (changed from 3 seconds)
-    if (zoroState.powerups.haki.active && Date.now() - zoroState.powerups.haki.activatedAt > 15000) {
-        zoroState.powerups.haki.active = false;
-        zoroElements.container.classList.remove('haki-active');
-    }
-    
-    // Update Ashura cooldown
-    if (zoroState.powerups.ashura.cooldown > 0) {
-        zoroState.powerups.ashura.cooldown--;
-        if (zoroState.powerups.ashura.cooldown === 0 && 
-            (zoroState.combo >= 15 || zoroState.level >= 7)) {
-            zoroState.powerups.ashura.available = true;
-        }
-    }
-    
-    // Update power-ups display
-    updatePowerUpDisplay();
-}
-
-/**
- * Update power-ups display
- */
-function updatePowerUpDisplay() {
-    // Remove existing power-ups display
-    const existingPowerUps = document.querySelector('.zoro-power-ups');
-    if (existingPowerUps) {
-        existingPowerUps.remove();
-    }
-    
-    // Create power-ups container
-    const powerUpsContainer = document.createElement('div');
-    powerUpsContainer.className = 'zoro-power-ups';
-    
-    // Create Onigiri power-up
-    const onigiriPowerUp = createPowerUpElement('onigiri', '🍙', 'Onigiri - Restore 1 life');
-    powerUpsContainer.appendChild(onigiriPowerUp);
-    
-    // Create Haki power-up
-    const hakiPowerUp = createPowerUpElement('haki', '⚡', 'Haki - Temporary invincibility');
-    powerUpsContainer.appendChild(hakiPowerUp);
-    
-    // Create Ashura power-up
-    const ashuraPowerUp = createPowerUpElement('ashura', '👹', 'Ashura - Clear screen');
-    powerUpsContainer.appendChild(ashuraPowerUp);
-    
-    // Add to container
-    zoroElements.container.appendChild(powerUpsContainer);
-}
-
-/**
- * Create a power-up element
- * @param {string} name - Power-up name
- * @param {string} icon - Power-up icon
- * @param {string} tooltip - Power-up tooltip text
- */
-function createPowerUpElement(name, icon, tooltip) {
-    const powerUp = zoroState.powerups[name];
-    
-    const element = document.createElement('div');
-    element.className = `power-up ${powerUp.available ? 'available' : ''}`;
-    element.title = tooltip + (powerUp.cooldown > 0 ? ` (Cooldown: ${powerUp.cooldown}s)` : '');
-    
-    const iconElement = document.createElement('div');
-    iconElement.className = 'power-icon';
-    iconElement.textContent = icon;
-    
-    const nameElement = document.createElement('div');
-    nameElement.className = 'power-name';
-    nameElement.textContent = powerUp.cooldown > 0 ? `${name} (${powerUp.cooldown}s)` : name;
-    
-    element.appendChild(iconElement);
-    element.appendChild(nameElement);
-    
-    return element;
-}
-
-/**
- * Activate a power-up
- * @param {string} input - Input text
- * @returns {boolean} - True if a power-up was activated
- */
-function activatePowerUp(input) {
-    const lowerInput = input.toLowerCase();
-    
-    // Check for Onigiri activation
-    if (lowerInput === 'onigiri' && zoroState.powerups.onigiri.available) {
-        activateOnigiri();
-        return true;
-    }
-    
-    // Check for Haki activation
-    if (lowerInput === 'haki' && zoroState.powerups.haki.available) {
-        activateHaki();
-        return true;
-    }
-    
-    // Check for Ashura activation
-    if (lowerInput === 'ashura' && zoroState.powerups.ashura.available) {
-        activateAshura();
-        return true;
-    }
-    
-    return false;
-}
-
-/**
- * Activate Onigiri power-up (restore 1 life)
- */
-function activateOnigiri() {
-    // Restore 1 life up to max of 3
-    if (zoroState.lives < 3) {
-        zoroState.lives++;
-        
-        // Play sound
-        zoroAudio.onigiri.currentTime = 0;
-        zoroAudio.onigiri.play().catch(err => console.error('Audio playback error:', err));
-        
-        // Flash effect
-        zoroElements.container.classList.add('onigiri-flash');
-        setTimeout(() => {
-            zoroElements.container.classList.remove('onigiri-flash');
-        }, 500);
-        
-        // Update lives display
-        updateLivesDisplay();
-    }
-    
-    // Set cooldown
-    zoroState.powerups.onigiri.available = false;
-    zoroState.powerups.onigiri.cooldown = 30; // 30 second cooldown
-    
-    // Update power-ups display
-    updatePowerUpDisplay();
-}
-
-/**
- * Activate Haki power-up (temporary invincibility)
- */
-function activateHaki() {
-    // Set active state and record activation time
-    zoroState.powerups.haki.active = true;
-    zoroState.powerups.haki.activatedAt = Date.now();
-    
-    // Play sound
-    zoroAudio.haki.currentTime = 0;
-    zoroAudio.haki.play().catch(err => console.error('Audio playback error:', err));
-    
-    // Add haki effect to container
-    zoroElements.container.classList.add('haki-active');
-    
-    // Set cooldown
-    zoroState.powerups.haki.available = false;
-    zoroState.powerups.haki.cooldown = 45; // 45 second cooldown
-    
-    // Update power-ups display
-    updatePowerUpDisplay();
-}
-
-/**
- * Activate Ashura power-up (clear screen)
- */
-function activateAshura() {
-    // Play sound
-    zoroAudio.ashura.currentTime = 0;
-    zoroAudio.ashura.play().catch(err => console.error('Audio playback error:', err));
-    
-    // Mark all on-screen words as hit
-    zoroState.words.forEach(word => {
-        if (!word.hit) {
-            word.hit = true;
-            word.color = '#7aac7a'; // Success color
-            createSlashEffect(word.x, word.y);
-            
-            // Award points for each word
-            increaseScore(word.word.length);
-        }
-    });
-    
-    // Create Ashura visual effect
-    createAshuraEffect();
-    
-    // Set cooldown
-    zoroState.powerups.ashura.available = false;
-    zoroState.powerups.ashura.cooldown = 60; // 60 second cooldown
-    
-    // Update power-ups display
-    updatePowerUpDisplay();
-}
-
-/**
- * Create a sword slash effect at x, y coordinates
- * @param {number} x - X coordinate
- * @param {number} y - Y coordinate
- */
-function createSlashEffect(x, y) {
-    // Create slash element
-    const slashElement = document.createElement('div');
-    slashElement.className = 'sword-slash';
-    slashElement.style.left = `${x}px`;
-    slashElement.style.top = `${y}px`;
-    
-    // Add to container
-    zoroElements.container.appendChild(slashElement);
-    
-    // Remove after animation
-    setTimeout(() => {
-        slashElement.remove();
-    }, 300);
-}
-
-/**
- * Create Ashura effect with clones
- */
-function createAshuraEffect() {
-    // Create clones container
-    const clonesContainer = document.createElement('div');
-    clonesContainer.className = 'ashura-clones';
-    
-    // Create 9 clones positioned randomly
-    for (let i = 0; i < 9; i++) {
-        const clone = document.createElement('div');
-        clone.className = 'ashura-clone';
-        clone.style.transform = `translate(${(Math.random() - 0.5) * 100}px, ${(Math.random() - 0.5) * 100}px)`;
-        
-        // Use ashura.png instead of zoromodelogo.png
-        clone.style.backgroundImage = 'url("../assets/ashura.png")';
-        
-        // Add purple and red color scheme
-        clone.style.filter = 'hue-rotate(320deg) saturate(2.5)'; // Creates a purple-red effect
-        
-        clonesContainer.appendChild(clone);
-    }
-    
-    // Add to container
-    zoroElements.container.appendChild(clonesContainer);
-    
-    // Change container theme temporarily
-    const originalBg = zoroElements.container.style.backgroundColor;
-    zoroElements.container.style.boxShadow = 'inset 0 0 200px rgba(128, 0, 128, 0.5)'; // Purple glow
-    zoroElements.container.classList.add('ashura-active');
-    
-    // Create a red/purple overlay
-    const ashuraOverlay = document.createElement('div');
-    ashuraOverlay.className = 'ashura-overlay';
-    ashuraOverlay.style.position = 'absolute';
-    ashuraOverlay.style.top = '0';
-    ashuraOverlay.style.left = '0';
-    ashuraOverlay.style.width = '100%';
-    ashuraOverlay.style.height = '100%';
-    ashuraOverlay.style.backgroundColor = 'rgba(128, 0, 80, 0.15)'; // Purple-red tint
-    ashuraOverlay.style.pointerEvents = 'none';
-    ashuraOverlay.style.zIndex = '1005';
-    ashuraOverlay.style.mixBlendMode = 'color-burn';
-    zoroElements.container.appendChild(ashuraOverlay);
-    
-    // Remove after animation
-    setTimeout(() => {
-        clonesContainer.remove();
-        ashuraOverlay.remove();
-        zoroElements.container.style.boxShadow = '';
-        zoroElements.container.classList.remove('ashura-active');
-    }, 3000);
-}
-
-/**
- * Play glitch effect for Zoro Mode activation
- */
-function playGlitchEffect() {
-    // Create glitch overlays
-    const overlays = [];
-    
-    for (let i = 1; i <= 3; i++) {
-        const overlay = document.createElement('div');
-        overlay.className = `glitch-overlay glitch-${i}`;
-        document.body.appendChild(overlay);
-        overlays.push(overlay);
-    }
-    
-    // Play evil laugh
-    zoroAudio.laugh.currentTime = 0;
-    zoroAudio.laugh.play().catch(err => console.error('Audio playback error:', err));
-    
-    // Remove overlays after effect
-    setTimeout(() => {
-        overlays.forEach(overlay => overlay.remove());
-    }, 1000);
-}
-
-/**
- * Handle window resize for Zoro Mode
- */
-function handleZoroResize() {
-    if (!zoroState.active) return;
-    
-    // Resize canvas
-    zoroElements.canvas.width = window.innerWidth;
-    zoroElements.canvas.height = window.innerHeight;
-}
-
-/**
- * Remove all Zoro UI elements
- */
-function removeZoroUIElements() {
-    const elements = [
-        '.zoro-lives',
-        '.zoro-power-ups',
-        '.zoro-combo',
-        '.sword-slash',
-        '.ashura-clones'
-    ];
-    
-    elements.forEach(selector => {
-        const elements = document.querySelectorAll(selector);
-        elements.forEach(el => el.remove());
-    });
-}
-
-// Check if a string is the Konami code-like sequence to trigger Zoro Mode
-function isZoroTriggerSequence(str) {
-    return str.toLowerCase() === 'zoro';
-}
-
-// Export Zoro Mode module
-window.zoroModule = {
-    init: initZoroMode,
-    activate: activateZoroMode,
-    exit: exitZoroMode,
-    isZoroTriggerSequence
-};
-
-/**
- * Load word lists from JSON file
- */
-function loadZoroWordLists() {
-    fetch('zorotypinggamewords.json')
-        .then(response => response.json())
-        .then(data => {
-            zoroState.wordLists = data;
-            console.log('Zoro word lists loaded successfully');
-        })
-        .catch(error => {
-            console.error('Error loading Zoro word lists:', error);
-            // Fallback to default random words if JSON can't be loaded
+        // Update all possible score elements to ensure consistency
+        const scoreElements = document.querySelectorAll('#zoro-score, .stat-value[id="zoro-score"]');
+        scoreElements.forEach(element => {
+            if (element) element.textContent = zoroState.score;
         });
-}
-
-/**
- * Get a word from the current difficulty tier
- * @returns {string} A random word appropriate for current difficulty
- */
-function getZoroThemeWord() {
-    // If word lists haven't been loaded yet, use a fallback
-    if (!zoroState.wordLists) {
-        return getRandomWord(4); // Fallback to default random word
+        
+        document.getElementById('zoro-combo').textContent = zoroState.combo;
+        document.getElementById('zoro-difficulty').textContent = zoroState.difficultyTier;
+        
+        // Force reflow to ensure UI updates are rendered
+        zoroScoreDisplay.style.display = 'none';
+        zoroScoreDisplay.offsetHeight; // Force reflow
+        zoroScoreDisplay.style.display = 'block';
+        
+        // Also update the powerup display to reflect changes
+        checkPowerUps();
     }
     
-    // Get the current difficulty tier name
-    const currentTier = zoroState.difficultyTiers[zoroState.difficultyIndex];
+    // Update combo display
+    function updateComboDisplay(animate = false) {
+        if (!comboDisplay) return;
+        
+        const comboCountElement = document.getElementById('combo-count');
+        comboCountElement.textContent = zoroState.combo;
+        
+        if (animate && zoroState.combo > 1) {
+            comboCountElement.classList.add('combo-update');
+            setTimeout(() => {
+                comboCountElement.classList.remove('combo-update');
+            }, 300);
+        }
+    }
     
-    // Get the word list for current tier
-    const wordList = zoroState.wordLists[currentTier];
+    // Create slash effect
+    function createSlashEffect(x, y) {
+        const slash = document.createElement('div');
+        slash.className = 'sword-slash';
+        slash.style.left = `${x}px`;
+        slash.style.top = `${y}px`;
+        
+        zoroContainer.appendChild(slash);
+        
+        // Remove after animation completes
+        setTimeout(() => {
+            slash.remove();
+        }, 500);
+    }
     
-    // Return random word from the list
-    return wordList[Math.floor(Math.random() * wordList.length)];
-}
+    // Create screen flash effect
+    function createFlashEffect() {
+        zoroCanvas.classList.add('flash');
+        
+        setTimeout(() => {
+            zoroCanvas.classList.remove('flash');
+        }, 500);
+    }
+    
+    // Check if power-ups are available
+    function checkPowerUps() {
+        // Check Onigiri power-up
+        const onigiriPower = document.getElementById('onigiri-power');
+        if (zoroState.score >= POWER_UP_THRESHOLD.ONIGIRI) {
+            onigiriPower.classList.add('available');
+        } else {
+            onigiriPower.classList.remove('available');
+        }
+        
+        // Check Haki power-up
+        const hakiPower = document.getElementById('haki-power');
+        if (zoroState.score >= POWER_UP_THRESHOLD.HAKI) {
+            hakiPower.classList.add('available');
+        } else {
+            hakiPower.classList.remove('available');
+        }
+        
+        // Check Ashura power-up
+        const ashuraPower = document.getElementById('ashura-power');
+        if (zoroState.score >= POWER_UP_THRESHOLD.ASHURA) {
+            ashuraPower.classList.add('available');
+        } else {
+            ashuraPower.classList.remove('available');
+        }
+    }
+    
+    // Check if a power-up can be activated
+    function canActivatePowerUp(powerUp) {
+        switch (powerUp) {
+            case 'onigiri':
+                return zoroState.score >= POWER_UP_THRESHOLD.ONIGIRI;
+            case 'haki':
+                return zoroState.score >= POWER_UP_THRESHOLD.HAKI && !zoroState.hakiActive;
+            case 'ashura':
+                return zoroState.score >= POWER_UP_THRESHOLD.ASHURA && !zoroState.ashuraActive;
+            default:
+                return false;
+        }
+    }
+    
+    // Activate a power-up
+    function activatePowerUp(powerUp) {
+        switch (powerUp) {
+            case 'onigiri':
+                activateOnigiri();
+                break;
+            case 'haki':
+                activateHaki();
+                break;
+            case 'ashura':
+                activateAshura();
+                break;
+        }
+    }
+    
+    // Activate Onigiri power-up
+    function activateOnigiri() {
+        // Clear all words and add score
+        const wordCount = zoroState.words.length;
+        
+        // Play onigiri sound
+        playSound('onigiri');
+        
+        // Add score for each word
+        zoroState.words.forEach(word => {
+            addScore(word.word.length * 15);
+            
+            // Create slash effect at word position
+            createSlashEffect(word.x, word.y);
+        });
+        
+        // Clear words
+        zoroState.words = [];
+        
+        // Add flash effect
+        zoroCanvas.classList.add('onigiri-flash');
+        setTimeout(() => {
+            zoroCanvas.classList.remove('onigiri-flash');
+        }, 500);
+        
+        // Use the power-up
+        zoroState.score -= POWER_UP_THRESHOLD.ONIGIRI;
+        updateScoreDisplay();
+        
+        // Check power-ups after using one
+        checkPowerUps();
+    }
+    
+    // Activate Haki power-up
+    function activateHaki() {
+        // Slow down all words
+        zoroState.hakiActive = true;
+        
+        // Play haki sound
+        playSound('haki');
+        
+        // Apply slow effect to all words
+        zoroState.words.forEach(word => {
+            word.speed *= 0.5;
+        });
+        
+        // Add haki visual effect
+        zoroCanvas.classList.add('haki-active');
+        
+        // Use the power-up
+        zoroState.score -= POWER_UP_THRESHOLD.HAKI;
+        updateScoreDisplay();
+        
+        // Reset after 10 seconds
+        zoroState.powerUpTimers.haki = setTimeout(() => {
+            zoroState.hakiActive = false;
+            zoroCanvas.classList.remove('haki-active');
+            checkPowerUps();
+        }, 10000);
+        
+        // Check power-ups after using one
+        checkPowerUps();
+    }
+    
+    // Activate Ashura power-up
+    function activateAshura() {
+        // Create clones to help with typing
+        zoroState.ashuraActive = true;
+        
+        // Play ashura sound
+        playSound('checkashura');
+        
+        // Create visual effect for ashura activation
+        createAshuraEffect();
+        
+        // Use the power-up
+        zoroState.score -= POWER_UP_THRESHOLD.ASHURA;
+        updateScoreDisplay();
+        
+        // Auto-complete words for 5 seconds
+        const ashuraInterval = setInterval(() => {
+            if (zoroState.words.length > 0 && zoroState.gameActive) {
+                // Get a random word (more realistic behavior than just first word)
+                const randomIndex = Math.floor(Math.random() * zoroState.words.length);
+                const word = zoroState.words[randomIndex];
+                
+                // Mark as hit
+                word.hit = true;
+                
+                // Add score
+                addScore(word.word.length * 8);
+                
+                // Create slash effect
+                createSlashEffect(word.x, word.y);
+                
+                // Increase combo
+                increaseCombo();
+                
+                // Play slash sound
+                const slashSound = Math.random() > 0.5 ? 'slash1' : 'slash2';
+                playSound(slashSound);
+            }
+        }, 500);
+        
+        // Reset after 5 seconds
+        setTimeout(() => {
+            clearInterval(ashuraInterval);
+            zoroState.ashuraActive = false;
+            checkPowerUps();
+            
+            // Special sound effect when Ashura ends
+            playSound('evillaugh1');
+        }, 5000);
+        
+        // Check power-ups after using one
+        checkPowerUps();
+    }
+    
+    // Create Ashura effect
+    function createAshuraEffect() {
+        // Create ashura clones container
+        const ashuraClones = document.createElement('div');
+        ashuraClones.className = 'ashura-clones';
+        
+        // Add clone elements
+        for (let i = 0; i < 9; i++) {
+            const clone = document.createElement('div');
+            clone.className = 'ashura-clone';
+            
+            // Randomize position slightly
+            clone.style.transform = `translate(${(Math.random() - 0.5) * 20}px, ${(Math.random() - 0.5) * 20}px)`;
+            
+            ashuraClones.appendChild(clone);
+        }
+        
+        zoroContainer.appendChild(ashuraClones);
+        
+        // Remove after animation completes
+        setTimeout(() => {
+            ashuraClones.remove();
+        }, 3000);
+    }
+    
+    // Lose a life
+    function loseLife() {
+        zoroState.lives--;
+        
+        // Play hit sound
+        playSound('KO');
+        
+        // Reset combo
+        zoroState.combo = 0;
+        updateComboDisplay();
+        
+        // Update UI
+        updateLives();
+        
+        // Check game over
+        if (zoroState.lives <= 0) {
+            gameOver();
+        }
+    }
+    
+    // Game over
+    function gameOver() {
+        zoroState.gameActive = false;
+        
+        // Stop spawning words
+        clearInterval(zoroState.spawnTimer);
+        
+        // Play game over sound
+        playSound('gameover');
+        
+        // Show game over message
+        showGameOverMessage();
+        
+        // Save score to history if stats module exists
+        if (window.statsModule && window.statsModule.saveToHistory) {
+            const playTime = Math.floor((Date.now() - zoroState.gameStartTime) / 1000);
+            
+            window.statsModule.saveToHistory(
+                zoroState.score, // Use score as "WPM"
+                Math.min(100, Math.floor((zoroState.maxCombo / 20) * 100)), // Use max combo for accuracy
+                'zoro', // Special mode identifier
+                zoroState.score, // Characters typed (use score)
+                3 - zoroState.lives, // Error count
+                formatTime(playTime), // Time played
+                null // No word count
+            );
+        }
+    }
+    
+    // Show game over message
+    function showGameOverMessage() {
+        // Create game over overlay
+        const gameOverOverlay = document.createElement('div');
+        gameOverOverlay.style.position = 'absolute';
+        gameOverOverlay.style.top = '0';
+        gameOverOverlay.style.left = '0';
+        gameOverOverlay.style.width = '100%';
+        gameOverOverlay.style.height = '100%';
+        gameOverOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        gameOverOverlay.style.display = 'flex';
+        gameOverOverlay.style.flexDirection = 'column';
+        gameOverOverlay.style.alignItems = 'center';
+        gameOverOverlay.style.justifyContent = 'center';
+        gameOverOverlay.style.zIndex = '1100';
+        
+        // Game over text
+        const gameOverText = document.createElement('h1');
+        gameOverText.textContent = 'GAME OVER';
+        gameOverText.style.color = '#ff3333';
+        gameOverText.style.fontSize = '4rem';
+        gameOverText.style.marginBottom = '2rem';
+        gameOverText.style.textShadow = '0 0 10px #ff0000';
+        
+        // Score
+        const scoreText = document.createElement('p');
+        scoreText.textContent = `Final Score: ${zoroState.score}`;
+        scoreText.style.color = '#ffffff';
+        scoreText.style.fontSize = '2rem';
+        scoreText.style.marginBottom = '1rem';
+        
+        // Max combo
+        const comboText = document.createElement('p');
+        comboText.textContent = `Max Combo: ${zoroState.maxCombo}`;
+        comboText.style.color = '#ffffff';
+        comboText.style.fontSize = '1.5rem';
+        comboText.style.marginBottom = '1rem';
+        
+        // Difficulty reached
+        const difficultyText = document.createElement('p');
+        difficultyText.textContent = `Highest Tier: ${zoroState.difficultyTier}`;
+        difficultyText.style.color = '#b19cd9';
+        difficultyText.style.fontSize = '1.5rem';
+        difficultyText.style.marginBottom = '3rem';
+        
+        // Retry button
+        const retryButton = document.createElement('button');
+        retryButton.textContent = 'Try Again';
+        retryButton.style.backgroundColor = '#b19cd9';
+        retryButton.style.color = '#000000';
+        retryButton.style.border = 'none';
+        retryButton.style.padding = '1rem 2rem';
+        retryButton.style.fontSize = '1.2rem';
+        retryButton.style.marginRight = '1rem';
+        retryButton.style.cursor = 'pointer';
+        retryButton.style.borderRadius = '4px';
+        retryButton.onclick = () => {
+            gameOverOverlay.remove();
+            startGame();
+        };
+        
+        // Exit button
+        const exitButton = document.createElement('button');
+        exitButton.textContent = 'Exit Zoro Mode';
+        exitButton.style.backgroundColor = '#333333';
+        exitButton.style.color = '#ffffff';
+        exitButton.style.border = '1px solid #b19cd9';
+        exitButton.style.padding = '1rem 2rem';
+        exitButton.style.fontSize = '1.2rem';
+        exitButton.style.cursor = 'pointer';
+        exitButton.style.borderRadius = '4px';
+        exitButton.onclick = () => {
+            deactivate();
+        };
+        
+        // Button container
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.display = 'flex';
+        buttonContainer.appendChild(retryButton);
+        buttonContainer.appendChild(exitButton);
+        
+        // Assemble overlay
+        gameOverOverlay.appendChild(gameOverText);
+        gameOverOverlay.appendChild(scoreText);
+        gameOverOverlay.appendChild(comboText);
+        gameOverOverlay.appendChild(difficultyText);
+        gameOverOverlay.appendChild(buttonContainer);
+        
+        zoroContainer.appendChild(gameOverOverlay);
+    }
+    
+    // Format time for display
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+    
+    // Get a random word
+    function getRandomWord() {
+        if (!zoroState.wordList || Object.keys(zoroState.wordList).length === 0) {
+            return "zoro"; // Default if no words are loaded
+        }
+        
+        // Get appropriate tier based on current score
+        let wordTier = 'East Blue'; // Default easiest tier
+        
+        // Find the appropriate tier based on score
+        for (let i = DIFFICULTY_TIERS.length - 1; i >= 0; i--) {
+            const tier = DIFFICULTY_TIERS[i];
+            if (zoroState.score >= tier.threshold) {
+                // Map game difficulty tier to word list tier
+                if (tier.name === 'Alabasta' || tier.name === 'Skypiea' || tier.name === 'Water 7') {
+                    wordTier = 'Paradise';
+                } else if (tier.name === 'Enies Lobby' || tier.name === 'Thriller Bark' || tier.name === 'Sabaody') {
+                    wordTier = 'Paradise';
+                } else if (tier.name === 'Marineford' || tier.name === 'Fish-Man Island') {
+                    wordTier = 'Warlord_Commander';
+                } else if (tier.name === 'Dressrosa' || tier.name === 'Whole Cake Island') {
+                    wordTier = 'Yonko';
+                } else if (tier.name === 'Wano' || tier.name === 'Laugh Tale') {
+                    wordTier = 'Yonko';
+                } else {
+                    wordTier = 'East Blue';
+                }
+                break;
+            }
+        }
+        
+        // If tier not available, use the first available tier
+        if (!zoroState.wordList[wordTier]) {
+            const availableTiers = Object.keys(zoroState.wordList);
+            if (availableTiers.length > 0) {
+                wordTier = availableTiers[0];
+            } else {
+                return "zoro"; // Fallback if no tiers available
+            }
+        }
+        
+        // Get the words for the selected tier
+        const tierWords = zoroState.wordList[wordTier];
+        
+        if (!tierWords || tierWords.length === 0) {
+            return "zoro"; // Fallback
+        }
+        
+        // Filter words by length based on level
+        let filteredWords = tierWords;
+        
+        // For early levels (1-3), use very short words (2-3 chars)
+        if (zoroState.level <= 3) {
+            filteredWords = tierWords.filter(word => word.length >= 2 && word.length <= 3);
+        } 
+        // For levels 4-6, use shorter words (3-4 chars)
+        else if (zoroState.level <= 6) {
+            filteredWords = tierWords.filter(word => word.length >= 3 && word.length <= 4);
+        }
+        // For levels 7-10, use medium length words (4-6 chars)
+        else if (zoroState.level <= 10) {
+            filteredWords = tierWords.filter(word => word.length >= 4 && word.length <= 6);
+        }
+        // For higher levels, use longer words (5+ chars)
+        else {
+            filteredWords = tierWords.filter(word => word.length >= 5);
+        }
+        
+        // If filtering resulted in an empty array, use the original tier words
+        if (filteredWords.length === 0) {
+            filteredWords = tierWords;
+        }
+        
+        // Return a random word from the filtered list
+        return filteredWords[Math.floor(Math.random() * filteredWords.length)];
+    }
+    
+    // Export public methods
+    return {
+        init: init,
+        activate: activate,
+        deactivate: deactivate,
+        isZoroTriggerSequence: isZoroTriggerSequence
+    };
+})();

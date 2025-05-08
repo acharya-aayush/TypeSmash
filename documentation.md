@@ -30,7 +30,7 @@ TypeSmash is a typing test app that I built to help people improve their typing 
 
 ### 1. main.js
 The heart of TypeSmash:
-- Text generation engine (random words from dictionary)
+- Text generation engine (random words and passages)
 - Real-time typing verification
 - WPM and accuracy calculation
 - Mode switching (time vs word count)
@@ -40,12 +40,13 @@ The heart of TypeSmash:
 The brain that keeps track of everything:
 - History storage and retrieval
 - Graph rendering for performance visualization
-- Mode filtering (time, word, and eventually Zoro)
+- Mode filtering (time, word with various counts, and Zoro)
 - Progress tracking over time
 
 ### 3. utils.js
 Utility functions used throughout the app:
 - Word generation helpers
+- Text passage selection from JSON collection
 - Time formatting functions
 - Animation utilities
 - DOM manipulation helpers
@@ -65,8 +66,13 @@ The last-minute experiment that became a feature:
 The traditional typing test with two variants:
 - **Time Mode**: Type as many words as possible in 15 seconds
   - _Previously had 30s and 60s modes that were removed_
-- **Word Mode**: Type 20 words as fast as possible
-  - _Previously had 10, 50, and 100 word modes that were cut_
+- **Word Mode**: Type passages of varying lengths
+  - **20 words**: Quick speed tests
+  - **50 words**: Short paragraphs
+  - **100 words**: Medium-length passages
+  - **200 words**: Extended passages
+  - **500 words**: Long-form challenges
+  - **1000 words**: Marathon sessions
 
 ### Zoro Mode (The Last-Minute Addition)
 This was thrown together in the final days of development:
@@ -92,7 +98,7 @@ This was thrown together in the final days of development:
 ### History System
 - Saves tests to localStorage
 - Visualization through bar/line charts
-- Filtering by test mode
+- Filtering by test mode and word count
 - Tracks your last 100 tests
 
 ### Power-up System (Zoro Mode)
@@ -113,7 +119,9 @@ Added during the final development phase:
 index.html              # Main HTML entry point
 script.js               # Initialization script
 style.css               # Global styles
-zorotypinggamewords.json # Word lists for Zoro mode (added late)
+words_collection.json   # Collection of passages for word modes
+zorotypinggamewords.json # Word lists for Zoro mode
+parse_words.py          # Python script for generating words_collection.json
 
 assets/                 # Images and media files
   ├── mainlogo.png      # Main logo
@@ -151,23 +159,30 @@ The app uses separate state objects for different features:
 - `statsState`: Manages the statistics and history
 - `zoroState`: Added late for the Zoro mode functionality
 
+### Enhanced Word Modes
+Word mode now offers multiple options using meaningful passages:
+- Uses a structured JSON collection (words_collection.json)
+- Provides real paragraphs instead of random words
+- Implements different word counts (20, 50, 100, 200, 500, 1000)
+- Tracks stats separately for each word count
+
 ### UI Elements
 - Dynamic text display that updates as you type
+- Word count dropdown selector in the UI
 - Stats overlay that shows real-time performance
-- History tables and graphs
+- History tables and graphs with filtering for various word counts
 - Power-up indicators (added for Zoro mode)
 
 ### Scrapped Features
 Several features were developed but ultimately removed:
 - **Extended Time Tests**: 30s and 60s modes were fully implemented but removed
-- **Additional Word Counts**: 10, 50, and 100 word tests were cut
 - **Code Mode**: A specialized mode for typing code snippets that was abandoned due to syntax highlighting complexities
 - **Custom Text Mode**: Allowing users to paste their own text (removed due to formatting issues)
 - **Account System**: Login functionality was planned but never implemented
 
 ### LocalStorage Data Structure
 The app saves two types of history:
-- `typingHistory`: Array of regular typing test results
+- `typingHistory`: Array of regular typing test results with mode identifiers
 - `zoroHistory`: Added later for Zoro mode results
 
 ## ⚔️ Zoro Mode Details
@@ -248,7 +263,8 @@ Two separate arrays for tracking different game types:
 ### Visualization Options
 - Bar charts (default view)
 - Line charts (toggle option)
-- Filterable by game mode
+- Filterable by game mode and word count
+- Color coding for different test modes
 
 ### Calculation Methods
 Key metric calculations:
@@ -303,4 +319,103 @@ Hey, I'm Aayush Acharya, the dev behind TypeSmash. This started as a simple typi
 
 ---
 
-*Documentation last updated May 5, 2025*
+*Documentation last updated May 7, 2025*
+
+## 🔄 Planned Improvement: Meaningful Passages
+
+The next major update (v0.8.0) plans to enhance the word mode by using the actual passages from words_collection.json rather than random words. This change will:
+
+### Concept
+- Replace random word generation with meaningful, coherent passages
+- Maintain nominal word count categories (20w, 50w, 100w, etc.) for UI consistency
+- Handle variations between nominal and actual word counts gracefully
+
+### Technical Implementation
+- A new `getRandomPassage()` function will select complete passages from words_collection.json
+- The system will track both nominal category (e.g., "50w") and actual word count
+- Progress indicators will adapt to the actual number of words in the selected passage
+- Statistics will categorize by nominal count while tracking actual words typed
+
+### User Experience Improvements
+- More engaging content with coherent passages instead of random words
+- Realistic typing practice with proper sentences, paragraphs, and punctuation
+- Dynamic progress tracking that reflects the actual text being typed
+- Better preparation for real-world typing scenarios
+
+### Edge Case Handling
+- For passages shorter than their category: Tests will end at actual passage completion
+- For passages longer than their category: The entire passage will be used with updated counters
+- Where JSON loading fails: System will gracefully fall back to random word generation
+
+See the [implementation_plan.md](implementation_plan.md) for detailed technical specifications of this planned update.
+
+## 🔄 Planned Improvement: Zoro Mode Balancing (v0.8.1)
+
+The upcoming v0.8.1 update will focus on addressing several balance and usability issues in Zoro Mode:
+
+### Power-Up System Refinement
+- **Cooldown System**: Implement time-based cooldowns for all power-ups to prevent spamming
+- **Visual Indicators**: Add clear visual feedback showing cooldown status and availability
+- **Balance Adjustments**: Fine-tune the effects and availability of power-ups based on game difficulty
+
+### Ashura & Onigiri Improvements
+- **Ashura Rebalance**: Modify the screen-clearing functionality to have appropriate cooldown and usage limitations
+- **Onigiri Implementation**: Improve the health restoration logic to prevent exploits while maintaining usefulness
+- **Visual Effects**: Enhance the visual feedback when using these abilities for better user experience
+
+### Difficulty Progression Adjustments
+- **Speed Balancing**: Adjust word falling speed in higher difficulty tiers, especially Marineford and above
+- **Word Selection**: Refine the word difficulty curve to ensure a more gradual progression
+- **Dynamic Difficulty**: Implement a more responsive difficulty adjustment system based on player performance
+
+### Dedicated Statistics System
+- **Separate Statistics**: Create a dedicated statistics section specifically for Zoro Mode
+- **Custom Metrics**: Track specialized metrics relevant to Zoro Mode:
+  - Highest combo achieved
+  - Total score (separate from WPM)
+  - Words destroyed count
+  - Power-ups used (by type)
+  - Highest level reached
+  - Average survival time
+- **Statistics Segregation**: Properly separate Zoro Mode data from standard typing test data in the "All" section
+- **Visual Representation**: Develop unique visual charts specifically for Zoro Mode metrics
+
+### Technical Implementation
+```javascript
+// Example of planned power-up cooldown system
+function activatePowerUp(type) {
+  const now = Date.now();
+  
+  // Check cooldown status
+  if (now - zoroState.lastPowerUpUse[type] < zoroState.powerUpCooldowns[type]) {
+    // Power-up still on cooldown
+    showCooldownIndicator(type);
+    return false;
+  }
+  
+  // Activate power-up based on type
+  switch(type) {
+    case 'ashura':
+      clearScreen();
+      break;
+    case 'onigiri':
+      restoreHealth(1); // Limited to restore only 1 health
+      break;
+    case 'haki':
+      activateInvincibility(5); // 5 seconds of invincibility
+      break;
+  }
+  
+  // Update cooldown timer
+  zoroState.lastPowerUpUse[type] = now;
+  startCooldownAnimation(type);
+  
+  return true;
+}
+```
+
+These improvements aim to address the current imbalances in Zoro Mode while enhancing the overall gameplay experience with more refined mechanics and dedicated statistics tracking.
+
+---
+
+*Documentation last updated May 8, 2025*
