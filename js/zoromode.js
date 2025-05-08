@@ -37,9 +37,9 @@ window.zoroModule = (function() {
     // Constants
     const ZORO_TRIGGER = "zoro";
     const POWER_UP_THRESHOLD = {
-        ONIGIRI: 100,  // Reduced from 150
-        HAKI: 200,     // Reduced from 300
-        ASHURA: 350    // Reduced from 500
+        ONIGIRI: 5000,  // Updated from 100 to 5000
+        HAKI: 1000,     // Updated from 200 to 1000
+        ASHURA: 7500    // Updated from 350 to 7500
     };
     const DIFFICULTY_TIERS = [
         {name: 'East Blue', threshold: 0, color: '#4a90e2'},
@@ -300,17 +300,21 @@ window.zoroModule = (function() {
         // Set up event listeners
         setupEventListeners();
         
-        // Start the game
-        startGame();
-        
-        // Initialize audio
-        initAudio();
-        
-        // Play background music
-        playSound('zorobattletheme', true);
-        
-        // Debug info
-        console.log("Zoro Mode UI elements created and added to document");
+        // Initialize audio first and then start the game
+        initAudio().then(() => {
+            // Start the game
+            startGame();
+            
+            // Play background music with a short delay to ensure audio context is ready
+            setTimeout(() => {
+                playSound('zorobattletheme', true);
+                console.log("Attempting to play Zoro battle theme");
+            }, 500);
+        }).catch(err => {
+            console.error("Audio initialization failed:", err);
+            // Still start the game even if audio fails
+            startGame();
+        });
     }
     
     // Update lives UI
@@ -422,63 +426,138 @@ window.zoroModule = (function() {
     
     // Initialize audio context and load sounds
     function initAudio() {
-        try {
-            zoroState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // Load sound effects
-            loadSound('slash1', 'sounds/slash1.mp3');
-            loadSound('slash2', 'sounds/slash2.mp3');
-            loadSound('gameover', 'sounds/gameover.mp3');
-            loadSound('onigiri', 'sounds/onigiri.mp3');
-            loadSound('haki', 'sounds/haki.mp3');
-            loadSound('checkashura', 'sounds/checkashura.mp3');
-            loadSound('evillaugh1', 'sounds/evillaugh1.mp3');
-            loadSound('KO', 'sounds/KO.mp3');
-            loadSound('zorobattletheme', 'sounds/zorobattletheme.mp3');
-            loadSound('levelup', 'sounds/levelup.mp3');
-        } catch (e) {
-            console.error('Web Audio API is not supported in this browser');
-        }
+        return new Promise((resolve, reject) => {
+            try {
+                // Resume audioContext if it exists but is suspended
+                if (zoroState.audioContext) {
+                    zoroState.audioContext.resume().then(() => {
+                        console.log("AudioContext resumed successfully");
+                    }).catch(err => {
+                        console.error("Failed to resume AudioContext:", err);
+                    });
+                } else {
+                    zoroState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                // Load sound effects
+                const soundsToLoad = [
+                    { id: 'slash1', url: 'sounds/slash1.mp3' },
+                    { id: 'slash2', url: 'sounds/slash2.mp3' },
+                    { id: 'gameover', url: 'sounds/gameover.mp3' },
+                    { id: 'onigiri', url: 'sounds/onigiri.mp3' },
+                    { id: 'haki', url: 'sounds/haki.mp3' },
+                    { id: 'checkashura', url: 'sounds/checkashura.mp3' },
+                    { id: 'evillaugh1', url: 'sounds/evillaugh1.mp3' },
+                    { id: 'KO', url: 'sounds/KO.mp3' },
+                    { id: 'zorobattletheme', url: 'sounds/zorobattletheme.mp3' },
+                    { id: 'levelup', url: 'sounds/levelup.mp3' }
+                ];
+                
+                // Wait for the battle theme to load at minimum
+                let battleThemeLoaded = false;
+                let loadingPromises = [];
+                
+                soundsToLoad.forEach(sound => {
+                    const loadPromise = loadSound(sound.id, sound.url)
+                        .then(() => {
+                            if (sound.id === 'zorobattletheme') {
+                                console.log("Zoro battle theme loaded successfully");
+                                battleThemeLoaded = true;
+                            }
+                        })
+                        .catch(err => {
+                            console.error(`Failed to load ${sound.id}:`, err);
+                            // Don't reject the main promise for individual sound failures
+                        });
+                    
+                    loadingPromises.push(loadPromise);
+                });
+                
+                // Resolve when the battle theme is loaded (or all sounds fail)
+                Promise.all(loadingPromises).then(() => {
+                    if (battleThemeLoaded) {
+                        resolve();
+                    } else {
+                        reject(new Error("Failed to load critical audio"));
+                    }
+                });
+                
+                // Set a timeout in case loading takes too long
+                setTimeout(() => {
+                    if (!battleThemeLoaded) {
+                        console.warn("Audio loading timeout, continuing anyway");
+                        resolve();
+                    }
+                }, 5000);
+                
+            } catch (e) {
+                console.error('Web Audio API error:', e);
+                reject(e);
+            }
+        });
     }
     
     // Load a sound file
     function loadSound(id, url) {
-        fetch(url)
-            .then(response => response.arrayBuffer())
+        return fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.arrayBuffer();
+            })
             .then(arrayBuffer => zoroState.audioContext.decodeAudioData(arrayBuffer))
             .then(audioBuffer => {
                 zoroState.sounds[id] = audioBuffer;
-            })
-            .catch(error => console.error('Error loading sound:', error));
+                console.log(`Sound loaded: ${id}`);
+            });
     }
     
     // Play a sound
     function playSound(id, loop = false) {
-        if (!zoroState.audioContext || !zoroState.sounds[id]) {
-            console.log(`Could not play sound: ${id} - not loaded`);
+        if (!zoroState.audioContext) {
+            console.error(`Could not play sound: ${id} - audio context not initialized`);
             return;
         }
         
-        const source = zoroState.audioContext.createBufferSource();
-        source.buffer = zoroState.sounds[id];
-        
-        // Create a gain node to control volume
-        const gainNode = zoroState.audioContext.createGain();
-        
-        // Set lower volume specifically for background music
-        if (id === 'zorobattletheme') {
-            gainNode.gain.value = 0.2; // 20% volume for background music
-        } else {
-            gainNode.gain.value = 1.0; // 100% volume for other sounds
+        if (!zoroState.sounds[id]) {
+            console.error(`Could not play sound: ${id} - not loaded`);
+            return;
         }
         
-        // Connect the source to the gain node, and the gain node to the output
-        source.connect(gainNode);
-        gainNode.connect(zoroState.audioContext.destination);
-        source.loop = loop;
+        // Resume the audio context if it's suspended (browser autoplay policy)
+        if (zoroState.audioContext.state === 'suspended') {
+            zoroState.audioContext.resume().then(() => {
+                console.log("AudioContext resumed during playback attempt");
+                playSound(id, loop);  // Try again after resuming
+            }).catch(err => {
+                console.error("Failed to resume AudioContext during playback:", err);
+            });
+            return;
+        }
         
         try {
+            const source = zoroState.audioContext.createBufferSource();
+            source.buffer = zoroState.sounds[id];
+            
+            // Create a gain node to control volume
+            const gainNode = zoroState.audioContext.createGain();
+            
+            // Set volume - increased from 20% to 40% for background music to be more audible
+            if (id === 'zorobattletheme') {
+                gainNode.gain.value = 0.4; // 40% volume for background music (increased from 20%)
+                console.log("Playing Zoro battle theme at 40% volume");
+            } else {
+                gainNode.gain.value = 1.0; // 100% volume for other sounds
+            }
+            
+            // Connect the source to the gain node, and the gain node to the output
+            source.connect(gainNode);
+            gainNode.connect(zoroState.audioContext.destination);
+            source.loop = loop;
+            
             source.start(0);
+            console.log(`Sound playing: ${id}, looping: ${loop}`);
             return source; // Return the source to stop it later if needed
         } catch (e) {
             console.error('Error playing sound:', e);
@@ -947,9 +1026,13 @@ window.zoroModule = (function() {
         // Play haki sound
         playSound('haki');
         
+        // Reset speed to 1 temporarily
+        const originalSpeed = zoroState.wordSpeed;
+        zoroState.wordSpeed = 1;
+        
         // Apply slow effect to all words
         zoroState.words.forEach(word => {
-            word.speed *= 0.5;
+            word.speed = 1;
         });
         
         // Add haki visual effect
@@ -959,10 +1042,26 @@ window.zoroModule = (function() {
         zoroState.score -= POWER_UP_THRESHOLD.HAKI;
         updateScoreDisplay();
         
-        // Reset after 10 seconds
+        // Start gradually increasing speed after 10 seconds
         zoroState.powerUpTimers.haki = setTimeout(() => {
             zoroState.hakiActive = false;
             zoroCanvas.classList.remove('haki-active');
+            
+            // Gradually return to original speed over 5 seconds
+            const targetSpeed = Math.min(4, 0.8 + (zoroState.level * 0.05)); // Match level speed calculation
+            const speedIncrement = (targetSpeed - 1) / 10; // 10 steps over 5 seconds
+            
+            let speedStep = 0;
+            const speedInterval = setInterval(() => {
+                speedStep++;
+                zoroState.wordSpeed = 1 + (speedIncrement * speedStep);
+                
+                if (speedStep >= 10) {
+                    clearInterval(speedInterval);
+                    zoroState.wordSpeed = targetSpeed; // Ensure exact match at end
+                }
+            }, 500); // Update every half second
+            
             checkPowerUps();
         }, 10000);
         
@@ -972,14 +1071,28 @@ window.zoroModule = (function() {
     
     // Activate Ashura power-up
     function activateAshura() {
-        // Create clones to help with typing
-        zoroState.ashuraActive = true;
-        
         // Play ashura sound
         playSound('checkashura');
         
         // Create visual effect for ashura activation
         createAshuraEffect();
+        
+        // Clear all words like Onigiri
+        const wordCount = zoroState.words.length;
+        
+        // Add score for each word
+        zoroState.words.forEach(word => {
+            addScore(word.word.length * 15);
+            
+            // Create slash effect at word position
+            createSlashEffect(word.x, word.y);
+        });
+        
+        // Clear words
+        zoroState.words = [];
+        
+        // Reset speed back to 1 (beginner level)
+        zoroState.wordSpeed = 1;
         
         // Use the power-up
         zoroState.score -= POWER_UP_THRESHOLD.ASHURA;

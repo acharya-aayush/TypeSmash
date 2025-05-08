@@ -100,15 +100,6 @@ function init() {
     elements.closeStatsBtn.addEventListener('click', toggleStats);
     elements.clearHistoryBtn.addEventListener('click', confirmClearHistory);
     
-    // Continue button for starting a new test
-    const continueBtn = document.getElementById('continue-btn');
-    if (continueBtn) {
-        continueBtn.addEventListener('click', () => {
-            resetTest();
-            elements.hiddenInput.focus();
-        });
-    }
-    
     // Word count selection buttons
     elements.wordCountButtons.forEach(button => {
         button.addEventListener('click', () => {
