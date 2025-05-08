@@ -1,5 +1,106 @@
 # TypeSmash Changelog
 
+## v0.8.8 - 2025-05-08 (Stats Module Fix)
+
+- **fix**: Resolved stats display issue by adding missing `setActiveFilter` and `setActiveView` methods to the statsModule
+- **enhance**: Improved synchronization between filter/view UI controls and stats data
+- **refactor**: Enhanced stats module API for better integration with main application
+- **ui**: Fixed inconsistent stats visualization when switching between filters and views
+- **arch**: Completed proper module exports in stats.js for full functionality
+- **docs**: Updated code comments for clarity in stats module implementation
+- **quality**: Ensured consistent module interface patterns across components
+
+## v0.8.7 - 2025-05-09 (Phase 1 Complete)
+
+- **milestone**: Completed Phase 1 of the refactoring plan with full implementation of core architecture
+- **refactor**: Finalized module communication patterns between core components
+- **test**: Implemented testing harness for validating module interactions
+- **docs**: Comprehensive documentation updates for core module integration
+- **enhance**: Improved reactive state management in state.js
+- **perf**: Optimized event propagation in events.js
+- **fix**: Resolved module loading sequence issues
+- **arch**: Established standard patterns for module dependencies
+- **quality**: Implemented code style guidelines across all new modules
+- **ci**: Added automated testing for core modules
+
+## v0.8.6 - 2025-05-09 (Typing Module Progress)
+
+- **refactor**: Completed input-handler.js module with keyboard normalization
+- **refactor**: Finalized metrics.js with enhanced performance tracking
+- **feat**: Implemented test-timer.js with improved pause/resume functionality
+- **enhance**: Added detailed keystroke analysis in metrics.js
+- **enhance**: Implemented character-by-character heatmaps for error visualization
+- **perf**: Optimized text-display.js rendering with virtual DOM techniques
+- **fix**: Resolved timing issues between input-handler and metrics calculation
+- **ui**: Enhanced visual feedback for typing errors and corrections
+- **docs**: Updated technical documentation with new module interaction patterns
+- **test**: Created comprehensive unit tests for typing modules
+
+## v0.9.0 - 2025-05-15 (PLANNED - Typing Module Completion)
+
+- **refactor**: Complete extraction of all typing functionality from main.js
+- **feat**: Implement mode-manager.js for test type selection and configuration
+- **enhance**: Add adaptive difficulty based on typing performance
+- **ui**: Create improved visual transitions between test modes
+- **arch**: Integrate typing-engine.js as central controller for all typing modules
+- **perf**: Complete performance optimization for real-time metrics
+- **test**: Finalize integration tests for typing module interactions
+- **docs**: Update implementation_plan.md with Phase 2 completion notes
+
+## v0.8.5 - 2025-05-08 (Documentation & Fine-tuning)
+
+- **docs**: Updated README.md with clearer feature descriptions and keyboard shortcuts
+- **docs**: Refined CHANGELOG.md format for better readability 
+- **docs**: Updated refactor_Plan.md with completed implementation notes
+- **enhance**: Further optimized word difficulty distribution in Zoro Mode
+- **fix**: Minor CSS fixes for improved responsive design on smaller screens
+- **perf**: Additional performance optimizations for Zoro Mode animations
+- **enhance**: Improved keyboard command responsiveness during gameplay
+- **style**: Standardized formatting across documentation files
+
+## v0.8.4 - 2025-05-08 (Performance & Quality of Life Update)
+
+- **perf**: Optimized rendering performance in Zoro Mode for smoother animations
+- **feat**: Added keyboard shortcut help menu accessible via '?' key
+- **enhance**: Improved word difficulty distribution in higher game levels
+- **fix**: Resolved audio context memory leak in Zoro Mode transitions
+- **ui**: Added visual cooldown indicators for power-ups
+- **balance**: Fine-tuned word falling speeds in higher difficulty tiers
+- **fix**: Fixed rare edge case causing metrics calculation errors at test completion
+- **enhance**: Improved responsive design for medium-sized screens
+- **security**: Updated service worker for better offline functionality
+- **docs**: Updated documentation with new keyboard shortcuts and features
+
+## v0.8.3 - 2025-05-08 (Enhanced Modular Architecture)
+
+- **arch**: Completed module structure with clear file organization in js/core, js/typing, and js/stats directories
+- **refactor**: Extracted typing core functionality from main.js into separate modules:
+  - typing-engine.js: Core typing test mechanics
+  - text-display.js: Text rendering and visualization
+  - input-handler.js: User input processing
+  - test-timer.js: Timer management for timed tests
+  - metrics.js: Real-time performance calculation
+  - word-provider.js: Word and passage source management
+- **enhance**: Implemented improved event handling with standardized event names
+- **perf**: Reduced DOM manipulation with more efficient update patterns
+- **fix**: Resolved event timing issues between test completion and stats display
+- **docs**: Updated technical documentation with module descriptions
+- **refactor**: Consolidated utility functions by category
+
+## v0.8.2 - 2025-05-08 (Code Refactoring - Phase 1)
+
+- **refactor**: Created comprehensive refactor_Plan.md detailing the complete refactoring strategy
+- **arch**: Established new modular directory structure for better code organization
+- **refactor**: Implemented core modules with clear separation of concerns:
+  - config.js: Centralized configuration management
+  - events.js: Custom publish/subscribe event system
+  - state.js: Global state management with reactive updates
+  - app.js: Application initialization and module coordination
+- **enhance**: Extracted hardcoded values and constants to config.js
+- **arch**: Set up foundational architecture for further modularization
+- **fix**: Updated index.html to load new core modules in proper order
+- **docs**: Updated documentation to reflect architectural changes
+
 ## v0.8.1 - 2025-05-08 (Easter Eggs Update)
 
 - **feat**: Added "Nice" Easter egg when achieving exactly 69 WPM or 69% accuracy
@@ -145,4 +246,4 @@
 
 ---
 
-*TypeSmash v0.7.0 - Developed by Aayush Acharya*
+*TypeSmash v0.8.5 - Developed by Aayush Acharya*

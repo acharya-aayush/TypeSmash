@@ -190,9 +190,28 @@
     </div>
     
     <!-- Scripts - where the magic happens -->
+    <!-- Core modules - load first -->
+    <script src="js/core/config.js"></script>
+    <script src="js/core/events.js"></script>
+    <script src="js/core/state.js"></script>
+    <script src="js/core/app.js"></script>
+    
+    <!-- Typing modules - new modular architecture -->
+    <script src="js/typing/word-provider.js"></script>
+    <script src="js/typing/text-display.js"></script>
+    <script src="js/typing/cursor.js"></script>
+    <script src="js/typing/input-handler.js"></script>
+    <script src="js/typing/test-timer.js"></script>
+    <script src="js/typing/metrics.js"></script>
+    <script src="js/typing/mode-manager.js"></script>
+    <script src="js/typing/typing-engine.js"></script>
+    
+    <!-- Original modules - will be refactored in later phases -->
     <script src="js/utils.js"></script>
     <script src="js/stats.js"></script>
     <script src="js/zoromode.js"></script>
+    
+    <!-- Main app script - load last -->
     <script src="js/main.js"></script>
 </body>
 </html>

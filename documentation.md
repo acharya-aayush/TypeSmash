@@ -5,30 +5,62 @@ TypeSmash is a typing test app that I built to help people improve their typing 
 
 ## 🧠 Architecture
 
+As of v0.8.2, TypeSmash is transitioning to a modular architecture, breaking down large files into smaller, more maintainable modules:
+
 ```
                     +---------------+
                     |   index.html  |
-                    | (where it starts) |
                     +-------+-------+
                             |
-         +------------------+------------------+
-         |                  |                  |
-+--------v--------+ +-------v-------+ +--------v--------+
-|    main.js      | |   zoromode.js | |     stats.js    |
-| (core typing)   | | (late addition)| | (numbers & stats)|
-+--------+--------+ +-------+-------+ +--------+--------+
-         |                  |                  |
-         +------------------v------------------+
-                            |
-                    +-------v-------+
-                    |    utils.js   |
-                    | (helper functions) |
-                    +---------------+
+               +------------+-----------+
+               |                        |
+        +------v------+          +------v------+
+        |  Core Modules|          |Legacy Modules|
+        +------+------+          +------+------+
+               |                        |
+    +----------+----------+    +--------+--------+
+    |          |          |    |        |        |
++---v---+ +----v---+ +----v--+ | +------v-+ +----v----+
+|config | |events  | |state  | | |main.js | |zoromode |
++-------+ +--------+ +-------+ | +--------+ +---------+
+|  app  |                      |          |           |
++-------+                      | stats.js | utils.js  |
+                              +----------+-----------+
 ```
+
+The new architecture separates core infrastructure from domain-specific functionality, providing better separation of concerns and cleaner module boundaries.
 
 ## 🧃 Core Modules
 
-### 1. main.js
+### 1. config.js
+Central configuration management:
+- Application constants and settings
+- Feature flags and toggles
+- Mode-specific configuration
+- Constants previously scattered throughout the codebase
+
+### 2. events.js
+Custom publish/subscribe event system:
+- Non-DOM event communication between modules
+- Event subscription with automatic cleanup
+- Error handling for event subscribers
+- Centralized event coordination
+
+### 3. state.js
+Reactive state management:
+- Centralized application state
+- State change notifications
+- Path-based state access (e.g., 'typing.active')
+- State watchers with automatic updates
+
+### 4. app.js
+Application initialization and module coordination:
+- Module registration and lifecycle management
+- Core event listeners setup
+- Application bootstrapping
+- Feature coordination
+
+### 5. main.js (Legacy)
 The heart of TypeSmash:
 - Text generation engine (random words and passages)
 - Real-time typing verification
@@ -36,14 +68,14 @@ The heart of TypeSmash:
 - Mode switching (time vs word count)
 - Character-by-character highlighting
 
-### 2. stats.js
+### 6. stats.js
 The brain that keeps track of everything:
 - History storage and retrieval
 - Graph rendering for performance visualization
 - Mode filtering (time, word with various counts, and Zoro)
 - Progress tracking over time
 
-### 3. utils.js
+### 7. utils.js
 Utility functions used throughout the app:
 - Word generation helpers
 - Text passage selection from JSON collection
@@ -52,7 +84,7 @@ Utility functions used throughout the app:
 - DOM manipulation helpers
 - Event handler utilities
 
-### 4. zoromode.js
+### 8. zoromode.js
 The last-minute experiment that became a feature:
 - Word spawning and movement
 - User input matching

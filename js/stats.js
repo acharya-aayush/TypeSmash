@@ -476,5 +476,39 @@ window.statsModule = {
     updateSettings: (newSettings) => {
         typingSettings = { ...typingSettings, ...newSettings };
         saveSettings();
+    },
+    // Add missing functions that are called from main.js
+    setActiveFilter: (filter) => {
+        // Update active class on filter buttons
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        filterButtons.forEach(btn => {
+            if (btn.id === `filter-${filter}`) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        // Update stats with the selected filter
+        updateStats(filter);
+    },
+    setActiveView: (view) => {
+        // Update active class on view buttons
+        const viewButtons = document.querySelectorAll('.view-btn');
+        viewButtons.forEach(btn => {
+            if (btn.id === `view-${view}`) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        // Get current filter
+        const activeFilterBtn = document.querySelector('.filter-btn.active');
+        const currentFilter = activeFilterBtn ? 
+            activeFilterBtn.id.replace('filter-', '') : 'all';
+            
+        // Update stats with current filter and new view
+        updateStats(currentFilter, view);
     }
 };
