@@ -293,33 +293,38 @@ Key metric calculations:
 - Power-up activations: Unique sounds for each ability (Onigiri, Haki, Ashura)
 - Game events: Level-up, difficulty tier change, game over
 
-## 🔧 Development Notes
+## 🎮 Easter Eggs
 
-### Known Issues
-- Mobile support is limited
-- Word difficulty balance in Zoro mode needs refinement
-- Stats page UI could use improvement
-- Some users might experience performance issues with many falling words
+Several hidden Easter eggs have been implemented to surprise and delight users:
 
-### Recent Improvements
-- Audio system overhaul with proper gain management
-- Power-up thresholds rebalanced (Onigiri: 5000, Haki: 1000, Ashura: 7500)
-- Improved difficulty progression in higher levels
+### Performance-Based Easter Eggs
+- **Nice**: When achieving exactly 69 WPM or 69% accuracy, a special sound plays
+- **Speed Demon**: Triggered when reaching 100-149 WPM with "impressive.mp3" sound
+- **Godlike**: Activated at 150+ WPM with special sound effect
+- **Suspicious Speed**: When reaching 200+ WPM with 98%+ accuracy, questions if you're a robot
+- **Perfect Accuracy**: Plays a special sound for 100% accuracy (with substantial text)
+- **Luffy Laugh**: For typing under 20 WPM, Luffy laughs at you with animation and sound
 
-### Browser Compatibility
-- Works on modern browsers (Chrome, Firefox, Edge, Safari)
-- Not tested on IE (because why would you?)
+### Word-Based Easter Eggs
+- **Gomu Gomu**: Typing "gomu" or "gomugomu" triggers animation and sound effect
+- **Nami-swan**: Typing "nami" or "namiswan" displays Nami with berry effects
 
-### Performance Considerations
-- RequestAnimationFrame for smooth animations
-- Limited DOM updates to prevent layout thrashing
-- Canvas rendering for Zoro mode for better performance
-- LocalStorage for lightweight data persistence
+### Technical Implementation
+- Easter eggs use a combination of CSS animations and JavaScript timeouts
+- Animations are synchronized with sound effect durations for seamless experience
+- Custom notification system displays messages when Easter eggs are triggered
+- All images and animations are preloaded to ensure smooth performance
 
-### Future Development Ideas
-- Mobile optimization
-- Custom themes
-- More game modes
+## 🏗️ Upcoming Refactoring
+
+The codebase is being prepared for restructuring to improve maintainability:
+
+- Breaking down large files (main.js, zoromode.js) into smaller modules
+- Improving code organization with proper namespacing
+- Separating concerns more effectively (UI, game logic, audio handling)
+- Implementing better module loading/dependency management
+
+This refactoring will not change functionality but will make the code more maintainable long-term.
 
 ---
 
@@ -345,7 +350,7 @@ Hey, I'm Aayush Acharya, the dev behind TypeSmash. This started as a simple typi
 
 ---
 
-*Documentation last updated May 7, 2025*
+*Documentation last updated May 8, 2025*
 
 ## 🔄 Planned Improvement: Meaningful Passages
 

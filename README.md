@@ -99,6 +99,24 @@ A completely unplanned feature added in the final days of development. Words fal
 - Visual indicators for power-up cooldowns
 - Proper separation of Zoro mode stats from regular typing test data
 
+### 🎮 Hidden Easter Eggs
+
+TypeSmash includes several hidden Easter eggs waiting to be discovered:
+
+- **Performance-Based Surprises**: Achieve certain WPM or accuracy milestones to trigger special effects
+- **Word-Based Secrets**: Type specific words related to One Piece for animations and sounds
+- **Visual Celebrations**: Enjoy character animations and sound effects when you least expect them
+
+Find them all by trying different words and achieving various typing milestones!
+
+### 🚀 Roadmap
+
+- **Code Refactoring**: Breaking large files into smaller, more maintainable modules
+- **Mobile Support**: Adapting the interface for tablet and mobile devices
+- **Custom Text Mode**: Allowing users to paste their own text for practice
+- **Additional Themes**: More visual customization options
+- **Expanded Stats**: More detailed performance analysis
+
 ## 🚀 Getting Started
 
 ### Online Version

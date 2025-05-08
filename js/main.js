@@ -478,6 +478,54 @@ function endTest() {
     const wpm = calculateWPM();
     const accuracy = calculateAccuracy();
     
+    // Easter eggs based on WPM and accuracy
+    if (wpm === 69 || accuracy === 69) {
+        // Play the "nice" sound effect
+        if (window.utilsModule && window.utilsModule.playSound) {
+            window.utilsModule.playSound('sounds/nice.mp3', 1.0);
+            showNotification("Nice! 👌", 2000);
+        }
+    }
+    // Low WPM - Luffy laugh
+    else if (wpm < 20 && typingGame.totalChars > 30) {
+        if (window.utilsModule && window.utilsModule.playSound) {
+            window.utilsModule.playSound('sounds/luffylaug.mp3', 1.0);
+            showNotification("Shishishi! Keep practicing! 🍖", 3000);
+            
+            // Add temporary class for Luffy laugh effect - extended to 8 seconds to match audio length
+            document.body.classList.add('luffy-laugh');
+            setTimeout(() => document.body.classList.remove('luffy-laugh'), 8000);
+        }
+    }
+    // High speed performance
+    else if (wpm >= 150) {
+        if (window.utilsModule && window.utilsModule.playSound) {
+            window.utilsModule.playSound('sounds/godlike.mp3', 1.0);
+            showNotification("Are you even human?! 🤖", 2000);
+        }
+    }
+    // Good speed performance
+    else if (wpm >= 100 && wpm < 150) {
+        if (window.utilsModule && window.utilsModule.playSound) {
+            window.utilsModule.playSound('sounds/impressive.mp3', 1.0);
+            showNotification("Speed demon! 🔥", 2000);
+        }
+    }
+    // Perfect accuracy on substantial test
+    else if (accuracy === 100 && typingGame.totalChars > 50) {
+        if (window.utilsModule && window.utilsModule.playSound) {
+            window.utilsModule.playSound('sounds/Perfect.mp3', 1.0);
+            showNotification("Flawless Victory! ✨", 2000);
+        }
+    }
+    // Suspicious performance
+    else if (wpm > 200 && accuracy > 98) {
+        if (window.utilsModule && window.utilsModule.playSound) {
+            window.utilsModule.playSound('sounds/suspicious.mp3', 1.0);
+            showNotification("Sus... Are you a robot? 🤖", 3000);
+        }
+    }
+    
     // Update displays
     elements.wpmDisplay.textContent = wpm;
     elements.accuracyDisplay.textContent = `${accuracy}%`;
@@ -630,6 +678,33 @@ function updateCharHighlighting(input, word) {
 function processCompletedWord(typedWord) {
     // Get correct word
     const correctWord = typingGame.words[typingGame.currentWordIndex];
+    
+    // Check for One Piece Easter eggs
+    const lowerTypedWord = typedWord.toLowerCase();
+    
+    // Gomu Gomu trigger
+    if (lowerTypedWord === "gomu" || lowerTypedWord === "gomugomu") {
+        if (window.utilsModule && window.utilsModule.playSound) {
+            window.utilsModule.playSound('sounds/gomu.mp3', 1.0);
+            showNotification("Gomu Gomu no... Typing Test! 🏴‍☠️", 3000);
+            
+            // Add temporary gomu visual effect with Luffy gif - extended to 5 seconds
+            document.body.classList.add('gomu-effect');
+            setTimeout(() => document.body.classList.remove('gomu-effect'), 5000);
+        }
+    }
+    
+    // Nami-swan trigger with disappointment effect
+    if (lowerTypedWord === "namiswan" || lowerTypedWord === "nami") {
+        if (window.utilsModule && window.utilsModule.playSound) {
+            window.utilsModule.playSound('sounds/namiswan.mp3', 1.0);
+            showNotification("Nami-swaaaan! 💰💰💰 Berry, berry!", 3000);
+            
+            // Add temporary class for money effect with Nami image - updated to 4 seconds
+            document.body.classList.add('nami-effect');
+            setTimeout(() => document.body.classList.remove('nami-effect'), 4000);
+        }
+    }
     
     // Save word history
     typingGame.currentWordHistory.push({

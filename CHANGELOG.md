@@ -1,5 +1,18 @@
 # TypeSmash Changelog
 
+## v0.8.1 - 2025-05-08 (Easter Eggs Update)
+
+- **feat**: Added "Nice" Easter egg when achieving exactly 69 WPM or 69% accuracy
+- **feat**: Added Gomu Gomu Easter egg triggered by typing "gomu" or "gomugomu"
+- **feat**: Added Nami-swan Easter egg triggered by typing "nami" or "namiswan"
+- **feat**: Added Luffy laugh Easter egg that plays when typing less than 20 WPM
+- **feat**: Added WPM milestone Easter eggs for high performance (100+ WPM, 150+ WPM)
+- **feat**: Added perfect accuracy Easter egg for 100% accuracy tests
+- **feat**: Added suspicious speed Easter egg for extremely high WPM with perfect accuracy
+- **enhance**: Improved notification system for displaying Easter egg messages
+- **ui**: Added visual effects for Easter eggs using One Piece character animations
+- **refactor**: Preparation for upcoming code restructuring to split large files into smaller modules
+
 ## v0.8.0 - 2025-05-08 (Audio Fixes & Power-ups Update)
 
 - **audio**: Fixed zorobattletheme.mp3 not playing in Zoro mode
