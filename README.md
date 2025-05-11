@@ -176,14 +176,17 @@ This is a personal project, but I'm open to contributions! Feel free to:
 
 ## 📝 License
 
-MIT License - See [LICENSE](LICENSE) for details.
+This is just a personal project I made for fun! Check out the [LICENSE](LICENSE.md) for all the details, but basically:
+- Feel free to use it personally and share with friends
+- Don't use it commercially or claim it as your own
+- The One Piece stuff (Zoro mode, sounds, etc.) isn't mine - it's just here because it's cool!
 
 ## 👋 About Me
 
-I'm Aayush Acharya, a CS student and web developer.
+I'm Aayush Acharya, just a CSIT student who loves coding and One Piece!
 - GitHub: [github.com/acharya-aayush](https://github.com/acharya-aayush)
 - Email: acharyaaayush2k4@gmail.com
 
 ---
 
-*TypeSmash v0.8.7 - Hope you enjoy it! Let me know if you break any WPM records!*
+*TypeSmash v0.8.7 - Hope you enjoy it! Hit me up if you break 200 WPM! 🔥⌨️*
